@@ -10,8 +10,12 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Cache;
 use App\Models\OrderHistory;
+use App\Models\Category;
+
 use Illuminate\Support\Facades\DB;
 use App\Models\FavouriteProduct;
+use Carbon\Carbon;
+
 
 class ProductController extends Controller
 {
@@ -243,10 +247,12 @@ class ProductController extends Controller
             'ExpirationDateUtc' => 'required',
             'productIds' => 'required',
             'IsExpired' => 'required',
-            'TokenRejected' => 'required'
+            'TokenRejected' => 'required',
+            'user_id' => 'required'
 
         ]);
-        $fields = array('ApiId', 'ExpirationDateUtc', 'IsExpired', 'TokenRejected', 'productIds');
+        // dd('gg');
+        $fields = array('ApiId', 'ExpirationDateUtc', 'IsExpired', 'TokenRejected', 'productIds', 'user_id');
         $error_message = "";
         if ($validator->fails()) {
             foreach ($fields as $field) {
@@ -322,10 +328,15 @@ class ProductController extends Controller
             $json = json_encode($xml);
             $responseArray = json_decode($json, true);
 
-
+            $FavouriteProduct =  FavouriteProduct::where('user_id', $request->user_id)->where('product_id', $request->productIds)->first();
+            $recordExiste = false;
+            $Favoriteid = null;
+            if (isset($FavouriteProduct->id)) {
+                $recordExiste = true;
+                $Favoriteid = $FavouriteProduct->id;
+            }
             if (isset($responseArray['sBody']['FindProductsByIdsResponse']['FindProductsByIdsResult']['aProduct']) && !empty($responseArray['sBody']['FindProductsByIdsResponse']['FindProductsByIdsResult']['aProduct'])) {
-
-                return response()->json(['status' => 1, 'message' => 'product', 'product' => $responseArray['sBody']['FindProductsByIdsResponse']['FindProductsByIdsResult']['aProduct'], 'response' => $response]);
+                return response()->json(['status' => 1, 'message' => 'product', 'FavouriteProduct' => $recordExiste, 'Favoriteid' => $Favoriteid, 'product' => $responseArray['sBody']['FindProductsByIdsResponse']['FindProductsByIdsResult']['aProduct'], 'response' => $response]);
             } else {
                 return response()->json(['status' => 0, 'message' => 'something went wrong', 'response' => $response], 400);
             }
@@ -418,7 +429,24 @@ class ProductController extends Controller
             $responseArray = json_decode($json, true);
 
             if (isset($responseArray['sBody']['GetRootCategoriesResponse']['GetRootCategoriesResult']['aCategory']) && !empty($responseArray['sBody']['GetRootCategoriesResponse']['GetRootCategoriesResult']['aCategory'])) {
+                $aCategoryfromLive = $responseArray['sBody']['GetRootCategoriesResponse']['GetRootCategoriesResult']['aCategory'];
+                // Category::truncate();
+                foreach ($aCategoryfromLive as $key => $value) {
+                    // print_r($value['aName']);
+                    $oldRecord = Category::where('aId', $value['aId'])->where('aName', $value['aName'])->where('aParentId', $value['aParentId'])->first();
+                    if (!isset($oldRecord->id)) {
+                        $save = [
+                            'aName' =>  $value['aName'],
+                            'aId' =>  $value['aId'],
+                            'aParentId' =>  $value['aParentId'],
+                        ];
+                        $Category =  new Category;
+                        $Category->fill($save);
+                        $Category->save();
+                    }
+                }
 
+                // dd($aCategoryfromLive);
                 return response()->json(['status' => 1, 'message' => 'root category', 'category' => $responseArray['sBody']['GetRootCategoriesResponse']['GetRootCategoriesResult']['aCategory'], 'response' => $response]);
             } else {
                 return response()->json(['status' => 0, 'message' => 'something went wrong', 'response' => $response], 400);
@@ -454,7 +482,7 @@ class ProductController extends Controller
         }
 
         $tokenData = User::first();
-        $refreshtoken   =   new RegisterController();
+        $refreshtoken   = new RegisterController();
         $check = $refreshtoken->refreshToken($tokenData);
         try {
             $GetRootCategories  =
@@ -465,15 +493,15 @@ class ProductController extends Controller
                     <!--Optional:-->
                     <tem:token>
                         <!--Optional:-->
-                        <log:ApiId>' . $request->ApiId . '</log:ApiId>
+                        <log:ApiId>' . $check->ApiId . '</log:ApiId>
                         <!--Optional:-->
-                        <log:ExpirationDateUtc>' . $request->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                        <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
                         <!--Optional:-->
                         <log:Id>' . $check->token . '</log:Id>
                         <!--Optional:-->
-                        <log:IsExpired>' . $request->IsExpired . '</log:IsExpired>
+                        <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
                         <!--Optional:-->
-                        <log:TokenRejected>' . $request->TokenRejected . '</log:TokenRejected>
+                        <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
                     </tem:token>
                     <!--Optional:-->
                     <tem:parentId>' . $request->category_id . '</tem:parentId>
@@ -520,25 +548,35 @@ class ProductController extends Controller
             if (isset($responseArray['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory']) && !empty($responseArray['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory'])) {
 
                 $sub_subCategory = [];
-                foreach ($responseArray['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory'] as $value) {
-
-                    $GetsubCategories  =
-                        '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+                $aCategory = $responseArray['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory'];
+                if (isset($aCategory['aId'])) {
+                    $newArray[] = [
+                        "aDescription" => [],
+                        "aId" => $aCategory['aId'],
+                        "aName" => $aCategory['aName'],
+                        "aParentId" =>  $aCategory['aParentId']
+                    ];
+                    $aCategory =  $newArray;
+                }
+                foreach ($aCategory as $key => $value) {
+                    if (gettype($value) == 'array') {
+                        $GetsubCategories  =
+                            '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
                     <soapenv:Header/>
                     <soapenv:Body>
                         <tem:GetCategoryChildren>
                             <!--Optional:-->
                             <tem:token>
                                 <!--Optional:-->
-                                <log:ApiId>' . $request->ApiId . '</log:ApiId>
+                                <log:ApiId>' . $check->ApiId . '</log:ApiId>
                                 <!--Optional:-->
-                                <log:ExpirationDateUtc>' . $request->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                                <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
                                 <!--Optional:-->
                                 <log:Id>' . $check->token . '</log:Id>
                                 <!--Optional:-->
-                                <log:IsExpired>' . $request->IsExpired . '</log:IsExpired>
+                                <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
                                 <!--Optional:-->
-                                <log:TokenRejected>' . $request->TokenRejected . '</log:TokenRejected>
+                                <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
                             </tem:token>
                             <!--Optional:-->
                             <tem:parentId>' . $value['aId'] . '</tem:parentId>
@@ -546,60 +584,91 @@ class ProductController extends Controller
                     </soapenv:Body>
                     </soapenv:Envelope>';
 
-                    $curl1 = curl_init();
+                        $curl1 = curl_init();
 
-                    curl_setopt_array($curl1, array(
-                        CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
-                        CURLOPT_RETURNTRANSFER => true,
-                        CURLOPT_ENCODING => '',
-                        CURLOPT_MAXREDIRS => 10,
-                        CURLOPT_TIMEOUT => 0,
-                        CURLOPT_FOLLOWLOCATION => true,
-                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                        CURLOPT_CUSTOMREQUEST => 'POST',
-                        CURLOPT_POSTFIELDS => $GetsubCategories,
-                        CURLOPT_HTTPHEADER => array(
-                            'Content-Type: text/xml; charset=utf-8',
-                            'SOAPAction: http://tempuri.org/ICatalogService/GetCategoryChildren'
-                        ),
-                    ));
+                        curl_setopt_array($curl1, array(
+                            CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+                            CURLOPT_RETURNTRANSFER => true,
+                            CURLOPT_ENCODING => '',
+                            CURLOPT_MAXREDIRS => 10,
+                            CURLOPT_TIMEOUT => 0,
+                            CURLOPT_FOLLOWLOCATION => true,
+                            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                            CURLOPT_CUSTOMREQUEST => 'POST',
+                            CURLOPT_POSTFIELDS => $GetsubCategories,
+                            CURLOPT_HTTPHEADER => array(
+                                'Content-Type: text/xml; charset=utf-8',
+                                'SOAPAction: http://tempuri.org/ICatalogService/GetCategoryChildren'
+                            ),
+                        ));
 
-                    $response1 = curl_exec($curl1);
+                        $response1 = curl_exec($curl1);
 
 
-                    if (curl_errno($curl1)) {
-                        $response1 = curl_error($curl1);
+                        if (curl_errno($curl1)) {
+                            $response1 = curl_error($curl1);
 
-                        return response()->json(['status' => 0, 'message' => 'crul error', 'response' => $response1], 400);
-                    }
-                    curl_close($curl1);
-
-                    $xml1 = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response1);
-                    $xml1 = simplexml_load_string($xml1);
-                    $json1 = json_encode($xml1);
-                    $responseArray1 = json_decode($json1, true);
-
-                    if (isset($responseArray1['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory']) && !empty($responseArray1['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory'])) {
-                        if (array_keys($responseArray1['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory']) !== range(0, count($responseArray1['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory']) - 1)) {
-                            $subCategory = [$responseArray1['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory']];
-                        } else {
-                            $subCategory = $responseArray1['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory'];
+                            return response()->json(['status' => 0, 'message' => 'crul error', 'response' => $response1], 400);
                         }
-                        $sub_subCategory[]  = ['title' => $value['aName'], 'sub_Category' => $subCategory];
-                    } else {
+                        curl_close($curl1);
+
+                        $xml1 = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response1);
+                        $xml1 = simplexml_load_string($xml1);
+                        $json1 = json_encode($xml1);
+                        $responseArray1 = json_decode($json1, true);
+
+                        if (isset($responseArray1['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory']) && !empty($responseArray1['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory'])) {
+                            if (array_keys($responseArray1['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory']) !== range(0, count($responseArray1['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory']) - 1)) {
+                                $subCategory = [$responseArray1['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory']];
+                            } else {
+                                $subCategory = $responseArray1['sBody']['GetCategoryChildrenResponse']['GetCategoryChildrenResult']['aCategory'];
+                            }
+                            $sub_subCategory[]  = ['aId' => $value['aId'], 'title' => $value['aName'], 'sub_Category' => $subCategory];
+                        } else {
+                        }
                     }
                 }
             }
-
+            // dd($sub_subCategory);
             if (isset($sub_subCategory) && !empty($sub_subCategory)) {
+                foreach ($sub_subCategory as $key => $value) {
+                    // print_r($value);
+                    $oldRecord = Category::where('aName', $value['title'])->where('aParentId', $request->category_id)->first();
+                    if (!isset($oldRecord->id)) {
+                        $save = [
+                            'aName' =>  $value['title'],
+                            'aId' =>  $value['aId'],
+                            'aParentId' =>   $request->category_id,
+                        ];
+                        $Category =  new Category;
+                        $Category->fill($save);
+                        $Category->save();
+                    }
 
+                    foreach ($value['sub_Category'] as $sub_subCategoryLive) {
+                        // dd($sub_subCategoryLive['aId']);
+                        $oldRecord = Category::where('aId', $sub_subCategoryLive['aId'])->where('aName', $sub_subCategoryLive['aName'])->where('aParentId',  $value['aId'])->first();
+                        if (!isset($oldRecord->id)) {
+                            $save = [
+                                'aName' =>  $sub_subCategoryLive['aName'],
+                                'aId' =>  $sub_subCategoryLive['aId'],
+                                'aParentId' =>   $value['aId'],
+                                // 'aDescription' => $sub_subCategoryLive['aDescription'],
+                            ];
+                            $Category =  new Category;
+                            $Category->fill($save);
+                            $Category->save();
+                        }
+                    }
+                }
+                // dd('ss');
                 return response()->json(['status' => 1, 'message' => 'root category', 'category' => $sub_subCategory]);
             } else {
                 return response()->json(['status' => 0, 'message' => 'something went wrong'], 400);
             }
         } catch (\Exception $e) {
-            // dd($e);
-            return response()->json(['status' => 0, 'message' => $e->getMessage()], 400);
+            dd($e);
+            return response()->json(['status' => 0, 'message' => $e], 400);
         }
     }
 
@@ -750,7 +819,7 @@ class ProductController extends Controller
                                     <!--Optional:-->
                                     <tem:categoryId>95d7ef49-f57c-49e2-ae2d-ec0cf8959fa9</tem:categoryId>
                                     <!--Optional:-->
-                                    <tem:startRowIndex>1</tem:startRowIndex>
+                                    <tem:startRowIndex>0</tem:startRowIndex>
                                     <!--Optional:-->
                                     <tem:maximumRows>7</tem:maximumRows>
                                 </tem:GetCategoryProducts>
@@ -838,20 +907,20 @@ class ProductController extends Controller
             <tem:GetCategoryProducts>
                 <!--Optional:-->
                 <tem:token>
-                <log:ApiId>' . $request->ApiId . '</log:ApiId>
+                <log:ApiId>' . $check->ApiId . '</log:ApiId>
                 <!--Optional:-->
-                <log:ExpirationDateUtc>' . $request->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
                 <!--Optional:-->
                 <log:Id>' . $check->token . '</log:Id>
                 <!--Optional:-->
-                <log:IsExpired>' . $request->IsExpired . '</log:IsExpired>
+                <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
                 <!--Optional:-->
-                <log:TokenRejected>' . $request->TokenRejected . '</log:TokenRejected>
+                <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
                 </tem:token>
                 <!--Optional:-->
                 <tem:categoryId>' . $request->category_id . '</tem:categoryId>
                 <!--Optional:-->
-                <tem:startRowIndex>1</tem:startRowIndex>
+                <tem:startRowIndex>0</tem:startRowIndex>
                 <!--Optional:-->
                 <tem:maximumRows>100</tem:maximumRows>
             </tem:GetCategoryProducts>
@@ -1485,7 +1554,7 @@ class ProductController extends Controller
         $xml = simplexml_load_string($xml);
         $json = json_encode($xml);
         $responseArrays = json_decode($json, true);
-        dd($responseArrays);
+        // dd($responseArrays);
         if (isset($responseArrays['sBody']) && !empty($responseArrays['sBody'])) {
             $products = [];
             if (!empty($responseArrays['sBody']['GetOrderByIdResponse']['GetOrderByIdResult'])) {
@@ -1736,7 +1805,7 @@ class ProductController extends Controller
         }
 
         $tokenData = User::first();
-        $refreshtoken   =   new RegisterController();
+        $refreshtoken   = new RegisterController();
         $check = $refreshtoken->refreshToken($tokenData);
         $input = $request->all();
 
@@ -1945,7 +2014,8 @@ class ProductController extends Controller
             'ExpirationDateUtc' => 'required',
             // 'productIds' => 'required',
             'IsExpired' => 'required',
-            'TokenRejected' => 'required'
+            'TokenRejected' => 'required',
+            'user_email'  => 'required',
 
         ]);
         $fields = array('ApiId', 'ExpirationDateUtc', 'IsExpired', 'TokenRejected');
@@ -2090,8 +2160,18 @@ class ProductController extends Controller
         $json = json_encode($xml);
         $responseArray = json_decode($json, true);
 
+        $orderSave  = [
+            'order_id' => @$request->order_id,
+            'product_id' => @$request->product_id,
+            'user_id' => @$request->ApiId,
+            'quantity' => @$request->quantity,
+            'created_at'  => Carbon::now(),
+        ];
+        DB::table('order_by_user')->insert($orderSave);
+
         if (isset($responseArray['sBody']['PlaceOrderResponse']['PlaceOrderResult']) && !empty($responseArray['sBody']['PlaceOrderResponse']['PlaceOrderResult'])) {
             DB::table('order_and_product')->where(['order_id' => $request->order_id, 'UID' => $request->ApiId])->update(['status' => 'order']);
+            DB::table('cart')->where(['product_id' => $request->product_id, 'user_email' => $request->user_email])->delete();
             $checkOrder = DB::table('order_history')->where(['order_id' => $request->order_id, 'user_id' => $request->ApiId])->first();
             if (empty($checkOrder)) {
                 DB::table('order_history')->insert(['order_id' => $request->order_id, 'user_id' => $request->ApiId]);
@@ -2434,8 +2514,6 @@ class ProductController extends Controller
             return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
         $response = DB::table('cart')->where(['user_email' => $request->user_email])->get();
-
-
         return response()->json(['status' => 1, 'message' => 'cart data fetched', 'response' => $response]);
     }
 
@@ -2504,5 +2582,55 @@ class ProductController extends Controller
         }
         $response = FavouriteProduct::where(['id' => $request->id])->delete();
         return response()->json(['status' => 1, 'message' => 'Favourite Product Removed', 'response' => $response]);
+    }
+    function suggestNextOrderInfo($orderData, $userInfo)
+    {
+        $reorderInterval = 24;
+        $suggestedNextOrderInfo = [];
+        $addedProducts = [];
+        foreach ($orderData as $order) {
+            $deliveryDate = Carbon::parse($order->created_at);
+            $nextOrderDate = $deliveryDate->copy()->addDays($reorderInterval);
+            $productId = $order->product_id;
+            $quantity = $order->quantity;
+            $orderId = $order->order_id;
+            if (!isset($addedProducts[$productId])) {
+                $nextOrderInfo = [
+                    'next_order_date' => $nextOrderDate->format('Y-m-d'),
+                    'product_id' => $productId,
+                    'product_info' => $this->productInfo($productId, $userInfo),
+                    'order_id' => $orderId,
+                    'quantity' => $quantity,
+                ];
+                $suggestedNextOrderInfo[] = $nextOrderInfo;
+                $addedProducts[$productId] = true;
+            }
+        }
+
+        return $suggestedNextOrderInfo;
+    }
+
+
+    public function predictNextOrder(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+        ]);
+        if ($validator->fails()) {
+            $firstErrorMessage = $validator->errors()->first();
+            return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
+        }
+        $user_id = $request->user_id;
+        $firstDayOfMonth = now()->firstOfMonth();
+        $lastDayOfMonth = now()->endOfMonth();
+        $orders = DB::table('order_by_user')
+            ->where('user_id', $user_id)
+            ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])
+            ->get();
+
+        $userInfo = User::where('UID',  $request->user_id)->first();
+        $suggestedNextOrderInfo = $this->suggestNextOrderInfo($orders, $userInfo);
+
+        return response()->json(['status' => 1, 'message' => 'predictNextOrder fetched', 'response' => $suggestedNextOrderInfo]);
     }
 }

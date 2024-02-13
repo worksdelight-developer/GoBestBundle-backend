@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\CategoryController;
+
 use App\Http\Controllers\Api\UserController;
 
 /*
@@ -53,3 +55,6 @@ Route::post('cartList', [ProductController::class, 'cartList']);
 Route::post('addToFavourite', [ProductController::class, 'addToFavourite']);
 Route::post('removeFavourite', [ProductController::class, 'removeFavourite']);
 Route::get('listFavourite', [ProductController::class, 'listFavourite']);
+Route::post('predictNextOrder', [ProductController::class, 'predictNextOrder']);
+Route::post('GetRootCategoriesV1', [CategoryController::class, 'rootList']);
+Route::post('GetCategoryChildrenV1', [CategoryController::class, 'getCategoryChild']);
