@@ -55,6 +55,6 @@ Route::post('cartList', [ProductController::class, 'cartList']);
 Route::post('addToFavourite', [ProductController::class, 'addToFavourite']);
 Route::post('removeFavourite', [ProductController::class, 'removeFavourite']);
 Route::get('listFavourite', [ProductController::class, 'listFavourite']);
-Route::post('predictNextOrder', [ProductController::class, 'predictNextOrder']);
+Route::get('predictNextOrder', [ProductController::class, 'predictNextOrder']);
 Route::post('GetRootCategoriesV1', [CategoryController::class, 'rootList']);
 Route::post('GetCategoryChildrenV1', [CategoryController::class, 'getCategoryChild']);
