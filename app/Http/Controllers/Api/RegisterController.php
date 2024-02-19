@@ -304,15 +304,15 @@ class RegisterController extends Controller
                   <!--Optional:-->
                   <tem:token>
                      <!--Optional:-->
-                     <log:ApiId>' . $request->ApiId . '</log:ApiId>
+                     <log:ApiId>' . $check->ApiId . '</log:ApiId>
                      <!--Optional:-->
-                     <log:ExpirationDateUtc>' . $request->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                     <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
                      <!--Optional:-->
                      <log:Id>' . $check->token . '</log:Id>
                      <!--Optional:-->
-                     <log:IsExpired>' . $request->IsExpired . '</log:IsExpired>
+                     <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
                      <!--Optional:-->
-                     <log:TokenRejected>' . $request->TokenRejected . '</log:TokenRejected>
+                     <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
                   </tem:token>
                   <!--Optional:-->
                   <tem:userId>' . $request->user_id . '</tem:userId>
@@ -368,6 +368,11 @@ class RegisterController extends Controller
             return response()->json(['status' => 0, 'message' => $e->getMessage()], 400);
         }
     }
+
+
+
+
+
 
     public function refreshToken($data)
     {
@@ -1016,5 +1021,79 @@ class RegisterController extends Controller
             $data['response'] =  [];
             return $data;
         }
+    }
+
+
+    public function GetUserInfoThirdParty($user_id)
+    {
+
+        $tokenData = User::first();
+        $check = $this->refreshToken($tokenData);
+        $soapEnvelope = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+            <soapenv:Header/>
+            <soapenv:Body>
+               <tem:GetUserAccountById>
+                  <!--Optional:-->
+                  <tem:token>
+                     <!--Optional:-->
+                     <log:ApiId>' . $check->ApiId . '</log:ApiId>
+                     <!--Optional:-->
+                     <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                     <!--Optional:-->
+                     <log:Id>' . $check->token . '</log:Id>
+                     <!--Optional:-->
+                     <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+                     <!--Optional:-->
+                     <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+                  </tem:token>
+                  <!--Optional:-->
+                  <tem:userId>' . $user_id . '</tem:userId>
+               </tem:GetUserAccountById>
+            </soapenv:Body>
+         </soapenv:Envelope>';
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $soapEnvelope,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: http://tempuri.org/IUserAccountService/GetUserAccountById'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        if (curl_errno($curl)) {
+            $response = curl_error($curl);
+
+            return response()->json(['status' => 0, 'message' => 'crul error', 'response' => $response], 400);
+        }
+
+
+        curl_close($curl);
+        $xml = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
+        $xml = simplexml_load_string($xml);
+        $json = json_encode($xml);
+        $responseArray = json_decode($json, true); // true to have an array, false for an object
+        if (isset($responseArray['sBody']['sFault']['faultstring']) && !empty($responseArray['sBody']['sFault']['faultstring'])) {
+
+            return response()->json(['status' => 0, 'message' => $responseArray['sBody']['sFault']['faultstring'], 'response' => $response], 400);
+        }
+        $UserDetail = [];
+
+        if (isset($responseArray['sBody']['GetUserAccountByIdResponse']['GetUserAccountByIdResult']) && !empty($responseArray['sBody']['GetUserAccountByIdResponse']['GetUserAccountByIdResult'])) {
+
+            $UserDetail = $responseArray['sBody']['GetUserAccountByIdResponse']['GetUserAccountByIdResult'];
+        }
+
+        return response()->json(['status' => 1, 'message' => 'user detail', 'userDetail' => $UserDetail, 'response' => $response]);
     }
 }

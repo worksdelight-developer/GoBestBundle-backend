@@ -5,8 +5,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
-
+use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\OrderController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -58,3 +60,8 @@ Route::get('listFavourite', [ProductController::class, 'listFavourite']);
 Route::get('predictNextOrder', [ProductController::class, 'predictNextOrder']);
 Route::post('GetRootCategoriesV1', [CategoryController::class, 'rootList']);
 Route::post('GetCategoryChildrenV1', [CategoryController::class, 'getCategoryChild']);
+Route::post('addToInventory', [InventoryController::class, 'addToInventory']);
+Route::get('inventoryList', [InventoryController::class, 'inventoryList']);
+Route::post('orderPlacedV1', [OrderController::class, 'orderPlacedV1']);
+Route::get('getPurchaseHistoryV1', [OrderController::class, 'getPurchaseHistory']);
+Route::get('getOrderDetail', [OrderController::class, 'getOrderDetail']);

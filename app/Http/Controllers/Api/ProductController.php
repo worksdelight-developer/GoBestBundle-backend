@@ -20,8 +20,6 @@ use Carbon\Carbon;
 class ProductController extends Controller
 {
 
-
-
     public function productInfo($productIds, $userInfo)
     {
         $tokenData = User::first();
@@ -34,15 +32,15 @@ class ProductController extends Controller
                     <!--Optional:-->
                     <tem:token>
                        <!--Optional:-->
-                       <log:ApiId>' . $userInfo->ApiId . '</log:ApiId>
+                       <log:ApiId>' . $check->ApiId . '</log:ApiId>
                        <!--Optional:-->
-                       <log:ExpirationDateUtc>' . $userInfo->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                       <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
                        <!--Optional:-->
                        <log:Id>' . $check->token . '</log:Id>
                        <!--Optional:-->
-                       <log:IsExpired>' . $userInfo->IsExpired . '</log:IsExpired>
+                       <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
                        <!--Optional:-->
-                       <log:TokenRejected>' . $userInfo->TokenRejected . '</log:TokenRejected>
+                       <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
                     </tem:token>
                     <!--Optional:-->
                     <tem:productIds>
@@ -276,15 +274,15 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <tem:token>
                    <!--Optional:-->
-                   <log:ApiId>' . $request->ApiId . '</log:ApiId>
+                   <log:ApiId>' . $check->ApiId . '</log:ApiId>
                    <!--Optional:-->
-                   <log:ExpirationDateUtc>' . $request->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                   <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
                    <!--Optional:-->
                    <log:Id>' . $check->token . '</log:Id>
                    <!--Optional:-->
-                   <log:IsExpired>' . $request->IsExpired . '</log:IsExpired>
+                   <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
                    <!--Optional:-->
-                   <log:TokenRejected>' . $request->TokenRejected . '</log:TokenRejected>
+                   <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
                 </tem:token>
                 <!--Optional:-->
                 <tem:productIds>
@@ -336,7 +334,11 @@ class ProductController extends Controller
                 $Favoriteid = $FavouriteProduct->id;
             }
             if (isset($responseArray['sBody']['FindProductsByIdsResponse']['FindProductsByIdsResult']['aProduct']) && !empty($responseArray['sBody']['FindProductsByIdsResponse']['FindProductsByIdsResult']['aProduct'])) {
-                return response()->json(['status' => 1, 'message' => 'product', 'FavouriteProduct' => $recordExiste, 'Favoriteid' => $Favoriteid, 'product' => $responseArray['sBody']['FindProductsByIdsResponse']['FindProductsByIdsResult']['aProduct'], 'response' => $response]);
+                $produtInfo =  $responseArray['sBody']['FindProductsByIdsResponse']['FindProductsByIdsResult']['aProduct'];
+
+
+                $produtInfo['aLongDescription'] = strip_tags($produtInfo['aLongDescription']);
+                return response()->json(['status' => 1, 'message' => 'product', 'FavouriteProduct' => $recordExiste, 'Favoriteid' => $Favoriteid, 'product' => $produtInfo, 'response' => $response]);
             } else {
                 return response()->json(['status' => 0, 'message' => 'something went wrong', 'response' => $response], 400);
             }
@@ -806,22 +808,22 @@ class ProductController extends Controller
                                 <tem:GetCategoryProducts>
                                     <!--Optional:-->
                                     <tem:token>
-                                    <log:ApiId>' . $request->ApiId . '</log:ApiId>
+                                    <log:ApiId>' . $check->ApiId . '</log:ApiId>
                                     <!--Optional:-->
-                                    <log:ExpirationDateUtc>' . $request->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                                    <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
                                     <!--Optional:-->
                                     <log:Id>' . $check->token . '</log:Id>
                                     <!--Optional:-->
-                                    <log:IsExpired>' . $request->IsExpired . '</log:IsExpired>
+                                    <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
                                     <!--Optional:-->
-                                    <log:TokenRejected>' . $request->TokenRejected . '</log:TokenRejected>
+                                    <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
                                     </tem:token>
                                     <!--Optional:-->
-                                    <tem:categoryId>95d7ef49-f57c-49e2-ae2d-ec0cf8959fa9</tem:categoryId>
+                                    <tem:categoryId>01HP2YQ6ZQ6Y5SH34XH3VG7XX6</tem:categoryId>
                                     <!--Optional:-->
                                     <tem:startRowIndex>0</tem:startRowIndex>
                                     <!--Optional:-->
-                                    <tem:maximumRows>7</tem:maximumRows>
+                                    <tem:maximumRows>10</tem:maximumRows>
                                 </tem:GetCategoryProducts>
                                 </soapenv:Body>
                             </soapenv:Envelope>';
@@ -978,23 +980,28 @@ class ProductController extends Controller
             'ExpirationDateUtc' => 'required',
             // 'productIds' => 'required',
             'IsExpired' => 'required',
-            'TokenRejected' => 'required'
+            'TokenRejected' => 'required',
+            'street' => 'required',
+            'code' => 'required',
+            'postalCode' => 'required',
+            'administrativeArea' => 'required',
+            'subadministrativeArea' => 'required',
+            'locality' => 'required',
+            'subLocality' => 'required',
+
 
         ]);
-        $fields = array('ApiId', 'ExpirationDateUtc', 'IsExpired', 'TokenRejected');
-        $error_message = "";
         if ($validator->fails()) {
-            foreach ($fields as $field) {
-                if (isset($validator->errors()->getMessages()[$field][0]) && !empty($validator->errors()->getMessages()[$field][0]) && empty($error_message)) {
-                    $error_message = __($validator->errors()->getMessages()[$field][0]);
-                    return response()->json(['status' => 0, 'message' => $error_message]);
-                }
-            }
+            $firstErrorMessage = $validator->errors()->first();
+            return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
         try {
 
             $tokenData = User::first();
+            $userInfo   = DB::table('users')->where('UID', $request->ApiId)->first();
             $refreshtoken   =   new RegisterController();
+            $getUserInfoThirdParty =  $refreshtoken->GetUserInfoThirdParty($request->ApiId);
+
             $check = $refreshtoken->refreshToken($tokenData);
 
             $checkOrder   = DB::table('order_and_product')->where(['UID' => $request->ApiId, 'product_id' => $request->product_id])->first();
@@ -1155,7 +1162,7 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <log:Company>?</log:Company>
                 <!--Optional:-->
-                <log:CountryCode>?</log:CountryCode>
+                <log:CountryCode>' . $request->code . '</log:CountryCode>
                 <!--Optional:-->
                 <log:DepartmentId>?</log:DepartmentId>
                 <!--Optional:-->
@@ -1165,11 +1172,11 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <log:Fax>?</log:Fax>
                 <!--Optional:-->
-                <log:FirstName>jasmer</log:FirstName>
+                <log:FirstName>' . $userInfo->name . '</log:FirstName>
                 <!--Optional:-->
                 <log:Id>?</log:Id>
                 <!--Optional:-->
-                <log:LastName>singh</log:LastName>
+                <log:LastName>?</log:LastName>
                 <!--Optional:-->
                 <log:Line1>?</log:Line1>
                 <!--Optional:-->
@@ -1179,11 +1186,11 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <log:MiddleInitial>?</log:MiddleInitial>
                 <!--Optional:-->
-                <log:NickName>?</log:NickName>
+                <log:NickName>' . $userInfo->name . '</log:NickName>
                 <!--Optional:-->
                 <log:Phone>?</log:Phone>
                 <!--Optional:-->
-                <log:PostalCode>?</log:PostalCode>
+                <log:PostalCode>' . $request->postalCode . '</log:PostalCode>
                 <!--Optional:-->
                 <log:RegionCode>?</log:RegionCode>
                 <!--Optional:-->
@@ -1202,7 +1209,7 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <log:Company>?</log:Company>
                 <!--Optional:-->
-                <log:CountryCode>?</log:CountryCode>
+                <log:CountryCode>' . $request->code . '</log:CountryCode>
                 <!--Optional:-->
                 <log:DepartmentId>?</log:DepartmentId>
                 <!--Optional:-->
@@ -1212,11 +1219,11 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <log:Fax>?</log:Fax>
                 <!--Optional:-->
-                <log:FirstName>?</log:FirstName>
+                <log:FirstName>' . $userInfo->name . '</log:FirstName>
                 <!--Optional:-->
                 <log:Id>?</log:Id>
                 <!--Optional:-->
-                <log:LastName>?</log:LastName>
+                <log:LastName>' . $userInfo->name . '</log:LastName>
                 <!--Optional:-->
                 <log:Line1>?</log:Line1>
                 <!--Optional:-->
@@ -1226,13 +1233,13 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <log:MiddleInitial>?</log:MiddleInitial>
                 <!--Optional:-->
-                <log:NickName>?</log:NickName>
+                <log:NickName>' . $userInfo->name . '</log:NickName>
                 <!--Optional:-->
                 <log:Phone>?</log:Phone>
                 <!--Optional:-->
-                <log:PostalCode>?</log:PostalCode>
+                <log:PostalCode>' . $request->postalCode . '</log:PostalCode>
                 <!--Optional:-->
-                <log:RegionCode>?</log:RegionCode>
+                <log:RegionCode></log:RegionCode>
                 <!--Optional:-->
                 <log:RouteCode>?</log:RouteCode>
                 <!--Optional:-->
@@ -1241,7 +1248,7 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <tem:userId>' . $request->ApiId . '</tem:userId>
                 <!--Optional:-->
-                <tem:userEmail>?</tem:userEmail>
+                <tem:userEmail>' . $userInfo->email . '</tem:userEmail>
                 <!--Optional:-->
                 <tem:timeoforder>2023-05-12T00:00:00.000+05:00</tem:timeoforder>
                 </tem:CreateNewUnplacedOrder>
@@ -1339,7 +1346,7 @@ class ProductController extends Controller
                 $responseArray1 = json_decode($json1, true);
 
                 if (isset($responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult']) && !empty($responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult'])) {
-                    return response()->json(['status' => 1, 'message' => 'add Cart sucessfully', 'order_id' => $responseArray['sBody']['CreateNewUnplacedOrderResponse']['CreateNewUnplacedOrderResult'], 'line_item_id' => $responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult']]);
+                    return response()->json(['status' => 1, 'message' => 'add Cart sucessfully', 'order_id' => $responseArray['sBody']['CreateNewUnplacedOrderResponse']['CreateNewUnplacedOrderResult'], 'line_item_id' => $responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult'], 'getUserInfoThirdParty' => $getUserInfoThirdParty]);
                 } else {
                     return response()->json(['status' => 0, 'message' => 'something went wrong', 'response' => $response], 400);
                 }
@@ -1467,7 +1474,7 @@ class ProductController extends Controller
                 }
 
                 $responseArrays['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['products'] = $products;
-                unset($responseArrays['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aLineItems']);
+                // unset($responseArrays['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aLineItems']);
                 return response()->json(['status' => 1, 'message' => 'order detail', 'orderDetail' => $responseArrays['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']]);
             } else {
                 return response()->json(['status' => 0, 'message' => 'order details not found ']);
@@ -2393,84 +2400,29 @@ class ProductController extends Controller
             $error = $validator->errors()->first();
             return response()->json(['status' => 0, 'message' =>  $error, 'response' => []], 400);
         }
-        $OrderHistoryProduct =   DB::table('order_and_product')->where(['UID' => $request->UID])->where(['status' => 'order'])->get();
+        // $OrderHistoryProduct =   DB::table('order_by_user')->where(['user_id' => $request->UID])->groupBy('order_id')->get();
+
+        $OrderHistoryProduct = DB::table('order_by_user')
+            ->select('order_id', 'user_id', 'product_id')
+            ->where(['user_id' => $request->UID])
+            ->groupBy('order_id', 'user_id', 'product_id')
+            ->get();
         // $OrderHistory =   DB::table('order_history')->where(['user_id' => $request->UID])->get();
         $userInfo = User::where('UID',  $request->UID)->first();
         foreach ($OrderHistoryProduct as $key => $value) {
-            $productInfoApi =  $this->productInfo($value->product_id, $userInfo);
+            // $productInfoApi =  $this->productInfo($value->product_id, $userInfo);
             // dd($productInfoApi);
             $orderInfoApi = $this->orderInfo($value->order_id);
-            $aImageFileLarge = '';
-            if (isset($productInfoApi['aImageFileLarge'])  && is_string($productInfoApi['aImageFileLarge'])) {
-                $aImageFileLarge = $productInfoApi['aImageFileLarge'];
-            }
-            $aSubTotal = '';
-            if (isset($orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aSubTotal'])  && is_string($orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aSubTotal'])) {
-                $aSubTotal = $orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aSubTotal'];
-            }
-            $aProductName = '';
-            if (isset($productInfoApi['aProductName']) && is_string($productInfoApi['aProductName'])) {
-                $aProductName = $productInfoApi['aProductName'];
-            }
-            $aLongDescription = '';
-            if (isset($productInfoApi['aLongDescription']) && is_string($productInfoApi['aLongDescription'])) {
-                $aLongDescription = $productInfoApi['aLongDescription'];
-            }
-            $aListPrice = '';
-            if (isset($productInfoApi['aListPrice']) && is_string($productInfoApi['aListPrice'])) {
-                $aListPrice = $productInfoApi['aListPrice'];
-            }
-            $sellingPrice = '';
-            if (isset($productInfoApi['aListPrice']) && is_string($productInfoApi['aListPrice'])) {
-                $sellingPrice = $productInfoApi['aListPrice'];
-            }
-            $aOrderDiscounts = '';
-            if (isset($orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderDiscounts']) &&  is_string($orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderDiscounts'])) {
-                $aOrderDiscounts = $orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderDiscounts'];
-            }
-
-            $aGrandTotal = '';
-            if (isset($orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aGrandTotal']) &&  is_string($orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aGrandTotal'])) {
-                $aGrandTotal = $orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aGrandTotal'];
-            }
-
-            $aOrderStatusId = '';
-            if (isset($orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderStatusId']) &&  is_string($orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderStatusId'])) {
-                $aOrderStatusId = $orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderStatusId'];
-            }
-
-            $aOrderStatusName = '';
-            if (isset($orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderStatusName']) &&  is_string($orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderStatusName'])) {
-                $aOrderStatusName = $orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderStatusName'];
-            }
-
-
-            $aPaymentStatus = '';
-            if (isset($orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aPaymentStatus']) &&  is_string($orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aPaymentStatus'])) {
-                $aPaymentStatus = $orderInfoApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aPaymentStatus'];
-            }
-
-            $reponceObj = new \stdClass();
-            $reponceObj->aImageFileLarge = $aImageFileLarge;
-            $reponceObj->aSubTotal = $aSubTotal;
-            $reponceObj->aOrderId = $value->order_id;
-            $reponceObj->aProductName = $aProductName;
-            $reponceObj->aLongDescription = $aLongDescription;
-            $reponceObj->aFirstName = $userInfo->name;
-            $reponceObj->aLastName = $userInfo->name;
-            $reponceObj->aListPrice = $aListPrice;
-            $reponceObj->sellingPrice = $sellingPrice;
-            $reponceObj->aOrderDiscounts = $aOrderDiscounts;
-            $reponceObj->aGrandTotal = $aGrandTotal;
-            $reponceObj->aOrderStatusId = $aOrderStatusId;
-            $reponceObj->aOrderStatusName = $aOrderStatusName;
-            $reponceObj->aPaymentStatus = $aPaymentStatus;
-            $value->orderInfo = $reponceObj;
+            $orderInfoOBJ = new \stdClass();
+            $orderInfoOBJ = $orderInfoApi;
+            $value->orderInfo = $orderInfoOBJ;
         }
 
         // dd();
         return response()->json(['status' => 1, 'message' => 'Purchase History Fetched', 'response' => $OrderHistoryProduct]);
     }
+
+
 
 
     public function addToCart(Request $request)

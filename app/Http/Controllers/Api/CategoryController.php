@@ -14,7 +14,7 @@ class CategoryController extends Controller
 
     public function rootList()
     {
-        $category = Category::where('aParentId', '0')->get();
+        $category = Category::where('aParentId', '0')->withCount('sub_category')->get();
         return response()->json(['status' => 1, 'message' => 'root category', 'category' => $category]);
     }
 
