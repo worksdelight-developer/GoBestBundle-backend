@@ -65,3 +65,4 @@ Route::get('inventoryList', [InventoryController::class, 'inventoryList']);
 Route::post('orderPlacedV1', [OrderController::class, 'orderPlacedV1']);
 Route::get('getPurchaseHistoryV1', [OrderController::class, 'getPurchaseHistory']);
 Route::get('getOrderDetail', [OrderController::class, 'getOrderDetail']);
+Route::post('scanOut', [InventoryController::class, 'scanOut']);

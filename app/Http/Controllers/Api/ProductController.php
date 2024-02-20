@@ -336,8 +336,12 @@ class ProductController extends Controller
             if (isset($responseArray['sBody']['FindProductsByIdsResponse']['FindProductsByIdsResult']['aProduct']) && !empty($responseArray['sBody']['FindProductsByIdsResponse']['FindProductsByIdsResult']['aProduct'])) {
                 $produtInfo =  $responseArray['sBody']['FindProductsByIdsResponse']['FindProductsByIdsResult']['aProduct'];
 
+                if (gettype($produtInfo['aLongDescription']) == 'string') {
+                    $produtInfo['aLongDescription'] = strip_tags($produtInfo['aLongDescription']);
+                } else {
+                    $produtInfo['aLongDescription'] = '';
+                }
 
-                $produtInfo['aLongDescription'] = strip_tags($produtInfo['aLongDescription']);
                 return response()->json(['status' => 1, 'message' => 'product', 'FavouriteProduct' => $recordExiste, 'Favoriteid' => $Favoriteid, 'product' => $produtInfo, 'response' => $response]);
             } else {
                 return response()->json(['status' => 0, 'message' => 'something went wrong', 'response' => $response], 400);
@@ -882,7 +886,9 @@ class ProductController extends Controller
             'ExpirationDateUtc' => 'required',
             // 'productIds' => 'required',
             'IsExpired' => 'required',
-            'TokenRejected' => 'required'
+            'TokenRejected' => 'required',
+            'startRowIndex' =>   'required',
+            'maximumRows' =>   'required'
 
         ]);
         $fields = array('ApiId', 'ExpirationDateUtc', 'IsExpired', 'TokenRejected');
@@ -922,9 +928,9 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <tem:categoryId>' . $request->category_id . '</tem:categoryId>
                 <!--Optional:-->
-                <tem:startRowIndex>0</tem:startRowIndex>
+                <tem:startRowIndex>' . $request->startRowIndex . '</tem:startRowIndex>
                 <!--Optional:-->
-                <tem:maximumRows>100</tem:maximumRows>
+                <tem:maximumRows>' . $request->maximumRows . '</tem:maximumRows>
             </tem:GetCategoryProducts>
             </soapenv:Body>
         </soapenv:Envelope>';
@@ -1822,15 +1828,15 @@ class ProductController extends Controller
                 <tem:AddLineItemByProductId>
                 <!--Optional:-->
                 <tem:token>
-                <log:ApiId>' . $request->ApiId . '</log:ApiId>
+                <log:ApiId>' . $check->ApiId . '</log:ApiId>
                 <!--Optional:-->
-                <log:ExpirationDateUtc>' . $request->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
                 <!--Optional:-->
                 <log:Id>' . $check->token . '</log:Id>
                 <!--Optional:-->
-                <log:IsExpired>' . $request->IsExpired . '</log:IsExpired>
+                <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
                 <!--Optional:-->
-                <log:TokenRejected>' . $request->TokenRejected . '</log:TokenRejected>
+                <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
                 </tem:token>
                 <!--Optional:-->
                 <tem:orderId>' . $request->order_id . '</tem:orderId>
@@ -1876,7 +1882,6 @@ class ProductController extends Controller
         $json1 = json_encode($xml1);
         $responseArray1 = json_decode($json1, true);
         if (isset($responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult']) && !empty($responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult'])) {
-
             return response()->json(['status' => 1, 'message' => 'add cart', 'order_id' => $request->order_id, 'line_item_id' => $responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult']]);
         } else {
             return response()->json(['status' => 0, 'message' => 'something went wrong', 'response' => $response1], 400);

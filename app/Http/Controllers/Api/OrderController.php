@@ -24,20 +24,100 @@ class OrderController extends Controller
 {
     //
 
+
+
+    public function AddLineitem($order_id, $product_id, $quantity)
+    {
+
+
+        $tokenData = User::first();
+        $refreshtoken   = new RegisterController();
+        $check = $refreshtoken->refreshToken($tokenData);
+
+        $addItem = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+                 <soapenv:Header/>
+                 <soapenv:Body>
+                <tem:AddLineItemByProductId>
+                <!--Optional:-->
+                <tem:token>
+                <log:ApiId>' . $check->ApiId . '</log:ApiId>
+                <!--Optional:-->
+                <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                <!--Optional:-->
+                <log:Id>' . $check->token . '</log:Id>
+                <!--Optional:-->
+                <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+                <!--Optional:-->
+                <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+                </tem:token>
+                <!--Optional:-->
+                <tem:orderId>' . $order_id . '</tem:orderId>
+                <!--Optional:-->
+                <tem:productId>' . $product_id . '</tem:productId>
+                <!--Optional:-->
+                <tem:quantity>' . $quantity . '</tem:quantity>
+                </tem:AddLineItemByProductId>
+                </soapenv:Body>
+                </soapenv:Envelope>';
+
+        //  dd($addItem);
+
+        $curl1 = curl_init();
+
+        curl_setopt_array($curl1, array(
+            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $addItem,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: http://tempuri.org/IOrdersService/AddLineItemByProductId'
+            ),
+        ));
+
+        $response1 = curl_exec($curl1);
+
+        if (curl_errno($curl1)) {
+            $response1 = curl_error($curl1);
+
+            return response()->json(['status' => 0, 'message' => 'crul error', 'response' => $response1], 400);
+        }
+        curl_close($curl1);
+
+        $xml1 = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response1);
+        $xml1 = simplexml_load_string($xml1);
+        $json1 = json_encode($xml1);
+        $responseArray1 = json_decode($json1, true);
+        if (isset($responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult']) && !empty($responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult'])) {
+            return $responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult'];
+        } else {
+            return 'ee';
+        }
+    }
+
+
     public function orderPlacedV1(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
             'user_id' => 'required',
             'order_id' => 'required',
             'products' => 'required',
             'products_quantity' => 'required',
+            'ApiId' => 'required',
+            'user_email' =>  'required',
         ]);
         $response = [];
         if ($validator->fails()) {
             $firstErrorMessage = $validator->errors()->first();
             return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
-
+        $AddLineitem = [];
         $products = $request->products;
         $products_quantity = $request->products_quantity;
 
@@ -72,6 +152,15 @@ class OrderController extends Controller
             ];
             $OrderProductV1->fill($save);
             $OrderProductV1->save();
+            if (count($products) !== 1  && $key !== 0) {
+                $AddLineitem[] = $this->AddLineitem($request->order_id, $value, $quantity);
+                DB::table('order_and_product')->where(['order_id' => $request->order_id, 'UID' => $request->ApiId])->update(['status' => 'order']);
+                DB::table('cart')->where(['product_id' => $value, 'user_email' => $request->user_email])->delete();
+                $checkOrder = DB::table('order_history')->where(['order_id' => $request->order_id, 'user_id' => $request->ApiId])->first();
+                if (empty($checkOrder)) {
+                    DB::table('order_history')->insert(['order_id' => $request->order_id, 'user_id' => $request->ApiId]);
+                }
+            }
         }
 
         $OrderV1 = new OrderV1;
@@ -90,7 +179,7 @@ class OrderController extends Controller
         $OrderV1->fill($save);
         $OrderV1->save();
 
-        return response()->json(['status' => 1, 'message' => 'order Placed ', 'result' => $request->all()]);
+        return response()->json(['status' => 1, 'message' => 'order Placed ', 'result' => $request->all(), 'AddLineitem' => $AddLineitem]);
     }
 
 
@@ -103,7 +192,7 @@ class OrderController extends Controller
             $firstErrorMessage = $validator->errors()->first();
             return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
-        $orders = OrderV1::where('user_id', $request->user_id)->withCount('orderProducts')->get();
+        $orders = OrderV1::where('user_id', $request->user_id)->withCount('orderProducts')->orderby('id', 'desc')->get();
         $callClass = new ProductController;
         foreach ($orders as $key => $value) {
             $orderInfoFromApi = $callClass->orderInfo($value->order_id);
@@ -132,7 +221,7 @@ class OrderController extends Controller
             ];
             $value['orderInfo'] = $orderInfo;
         }
-        return response()->json(['status' => 1, 'message' => 'Record Fetched', 'result' => $orders]);
+        return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $orders]);
     }
 
 
@@ -203,6 +292,6 @@ class OrderController extends Controller
         }
         // $order['orderInfo2'] = $orderInfoFromApi;
         // }
-        return response()->json(['status' => 1, 'message' => 'Record Fetched', 'result' => $order]);
+        return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $order]);
     }
 }
