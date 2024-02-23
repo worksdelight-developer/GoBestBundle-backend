@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+
 
 class RegisterController extends Controller
 {
@@ -498,6 +500,11 @@ class RegisterController extends Controller
 
     public function login(Request $request)
     {
+
+        $tokenData = User::first();
+        $refreshtoken   =   new RegisterController();
+        $check = $refreshtoken->refreshToken($tokenData);
+        // dd($check);
         $validator = Validator::make($request->all(), [
             'userName' => 'required',
             'password' => 'required'
@@ -515,13 +522,9 @@ class RegisterController extends Controller
                 }
             }
         }
-        $tokenData1 = User::where('name', $request->userName)->where('password', $request->password)->first();
+        // $tokenData1 = User::where('name', $request->userName)->where('password', $request->password)->first();
 
-        if (empty($tokenData1)) {
-
-            return response()->json(['status' => 0, 'message' => 'Incorrect email or password'], 400);
-        }
-
+        // if (empty($tokenData1)) {
         $login  = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
         <soapenv:Header/>
         <soapenv:Body>
@@ -564,38 +567,51 @@ class RegisterController extends Controller
         $xml = simplexml_load_string($xml);
         $json = json_encode($xml);
         $responseArray = json_decode($json, true);
-        //dd($responseArray);
+
+
         if (isset($responseArray['sBody']['LoginResponse']['LoginResult']) && !empty($responseArray['sBody']['LoginResponse']['LoginResult'])) {
             if (empty($responseArray['sBody']['LoginResponse']['LoginResult']['aApiId'])) {
-
-                return response()->json(['status' => 0, 'message' => 'There is some problem with your account plz contact super admin'], 400);
+                return response()->json(['status' => 0, 'message' => 'Incorrect email or password'], 400);
+                // return response()->json(['status' => 0, 'message' => 'There is some problem with your account plz contact super admin'], 400);
             }
             $tokenData = new \stdClass();
-            $tokenData1 = User::select('UID', 'name')->where('name', $request->userName)->first();
+
+            $userInfoFrom = $this->GetUserInfoByaApiId($responseArray['sBody']['LoginResponse']['LoginResult']['aApiId']);
+
+            $saveUserInfo =  [
+                'name' => $userInfoFrom['aFirstName'],
+                'email' => $userInfoFrom['aEmail'],
+                'UId' => $userInfoFrom['aId'],
+                'ApiId' => $responseArray['sBody']['LoginResponse']['LoginResult']['aApiId'],
+                'IsExpired' => $responseArray['sBody']['LoginResponse']['LoginResult']['aIsExpired'],
+                'token' => $responseArray['sBody']['LoginResponse']['LoginResult']['aId'],
+                'ExpirationDateUtc' =>  $responseArray['sBody']['LoginResponse']['LoginResult']['aExpirationDateUtc'],
+                'TokenRejected' => $responseArray['sBody']['LoginResponse']['LoginResult']['aTokenRejected'],
+                'password' => Hash::make($request->password),
+            ];
+            $tokenData1 = User::where('name', $request->userName)
+                ->orWhere('email', $request->userName)
+                ->first();
+            $User = new User;
+            if (isset($tokenData1->name)) {
+                $User = $tokenData1;
+            }
+            $User->fill($saveUserInfo);
+            $User->save();
+            // dd($User);
+            // dd($responseArray, $saveUserInfo, $userInfoFrom);
             $tokenData->ApiId = $responseArray['sBody']['LoginResponse']['LoginResult']['aApiId'];
             $tokenData->token = $responseArray['sBody']['LoginResponse']['LoginResult']['aId'];
             $tokenData->ExpirationDateUtc = $responseArray['sBody']['LoginResponse']['LoginResult']['aExpirationDateUtc'];
             $tokenData->IsExpired = $responseArray['sBody']['LoginResponse']['LoginResult']['aIsExpired'];
             $tokenData->TokenRejected = $responseArray['sBody']['LoginResponse']['LoginResult']['aTokenRejected'];
-            $tokenData->user = ['id' => $tokenData1->UID, 'name' => $tokenData1->name];
-            $tokenData->order_id = DB::table('order_and_product')->where('UID', $tokenData1->UID)->first();
-            $userInfo = User::where('name', $request->userName)->first();
-            $update = [
-                'ApiId' => $tokenData->ApiId,
-                'IsExpired' => $tokenData->IsExpired,
-                'token' => $tokenData->token,
-                'ExpirationDateUtc' => $tokenData->ExpirationDateUtc,
-                'TokenRejected' => $tokenData->TokenRejected,
-            ];
-            $userInfo = User::where('name', $request->userName)->first();
-            $userInfo->fill($update);
-            $userInfo->update();
-            if (empty($userInfo->email)) {
-                $userInfo->fill(['email' => $userInfo->name]);
-                $userInfo->update();
-            }
+            $tokenData->user = ['id' => $userInfoFrom['aId'], 'name' => $User->name];
+            $tokenData->order_id = DB::table('order_and_product')->where('UID', $User->UID)->first();
 
-            return response()->json(['status' => 1, 'message' => 'user login sucessfully', 'data' => $tokenData, 'response' => $response, 'userInfoUpdated' => $userInfo]);
+            return response()->json(['status' => 1, 'message' => 'user login sucessfully', 'data' => $tokenData, 'response' => $response]);
+            // }
+        } else {
+            return response()->json(['status' => 0, 'message' => 'Incorrect email or password'], 400);
         }
     }
 
@@ -1095,5 +1111,78 @@ class RegisterController extends Controller
         }
 
         return response()->json(['status' => 1, 'message' => 'user detail', 'userDetail' => $UserDetail, 'response' => $response]);
+    }
+
+
+
+    public function GetUserInfoByaApiId($aApiId)
+    {
+        $tokenData = User::first();
+        $check = $this->refreshToken($tokenData);
+        $soapEnvelope = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+            <soapenv:Header/>
+            <soapenv:Body>
+               <tem:GetUserAccountById>
+                  <!--Optional:-->
+                  <tem:token>
+                     <!--Optional:-->
+                     <log:ApiId>' . $check->ApiId . '</log:ApiId>
+                     <!--Optional:-->
+                     <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                     <!--Optional:-->
+                     <log:Id>' . $check->token . '</log:Id>
+                     <!--Optional:-->
+                     <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+                     <!--Optional:-->
+                     <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+                  </tem:token>
+                  <!--Optional:-->
+                  <tem:userId>' . $aApiId . '</tem:userId>
+               </tem:GetUserAccountById>
+            </soapenv:Body>
+         </soapenv:Envelope>';
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $soapEnvelope,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: http://tempuri.org/IUserAccountService/GetUserAccountById'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        if (curl_errno($curl)) {
+            $response = curl_error($curl);
+
+            return $response;
+        }
+
+
+        curl_close($curl);
+        $xml = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
+        $xml = simplexml_load_string($xml);
+        $json = json_encode($xml);
+        $responseArray = json_decode($json, true); // true to have an array, false for an object
+        if (isset($responseArray['sBody']['sFault']['faultstring']) && !empty($responseArray['sBody']['sFault']['faultstring'])) {
+
+            return $response;
+        }
+        $UserDetail = [];
+
+        if (isset($responseArray['sBody']['GetUserAccountByIdResponse']['GetUserAccountByIdResult']) && !empty($responseArray['sBody']['GetUserAccountByIdResponse']['GetUserAccountByIdResult'])) {
+
+            $UserDetail = $responseArray['sBody']['GetUserAccountByIdResponse']['GetUserAccountByIdResult'];
+        }
+        return $UserDetail;
     }
 }

@@ -34,7 +34,8 @@ class OrderController extends Controller
         $refreshtoken   = new RegisterController();
         $check = $refreshtoken->refreshToken($tokenData);
 
-        $addItem = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+        $addItem = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.
+        datacontract.org/2004/07/Logicblock.Commerce.Domain">
                  <soapenv:Header/>
                  <soapenv:Body>
                 <tem:AddLineItemByProductId>
@@ -134,24 +135,19 @@ class OrderController extends Controller
 
         foreach ($products as $key => $value) {
             $quantity =  $products_quantity[$key];
-            $OrderProductV1 = new OrderProductV1;
-            $exists = OrderProductV1::where([
-                'user_id' => $request->user_id,
-                'order_id' => $request->order_id,
-                'product_id' => $value,
-                'quantity' => $quantity
-            ])->first();
-
-            if (isset($exists->id)) {
-                $OrderProductV1 =  $exists;
-            }
-            $save = [
-                'user_id' => $request->user_id,
-                'order_id' => $request->order_id,
-                'product_id' => $value
-            ];
-            $OrderProductV1->fill($save);
-            $OrderProductV1->save();
+            // $OrderProductV1 = new OrderProductV1;
+            // $save = [
+            //     'user_id' => $request->user_id,
+            //     'order_id' => $request->order_id,
+            //     'product_id' => $value,
+            //     'quantity' => $quantity
+            // ];
+            // // $exists = OrderProductV1::where('order_id', $request->order_id)->where('user_id', $request->user_id)->first();
+            // // if (isset($exists->id)) {
+            // //     $OrderProductV1 =  $exists;
+            // // }
+            // $OrderProductV1->fill($save);
+            // $OrderProductV1->save();
             if (count($products) !== 1  && $key !== 0) {
                 $AddLineitem[] = $this->AddLineitem($request->order_id, $value, $quantity);
                 DB::table('order_and_product')->where(['order_id' => $request->order_id, 'UID' => $request->ApiId])->update(['status' => 'order']);
@@ -163,21 +159,21 @@ class OrderController extends Controller
             }
         }
 
-        $OrderV1 = new OrderV1;
-        $exists = OrderV1::where([
-            'user_id' => $request->user_id,
-            'order_id' => $request->order_id
-        ])->first();
-        if (isset($exists->id)) {
-            $OrderV1 =  $exists;
-        }
+        // $OrderV1 = new OrderV1;
+        // $exists = OrderV1::where([
+        //     'user_id' => $request->user_id,
+        //     'order_id' => $request->order_id
+        // ])->first();
+        // if (isset($exists->id)) {
+        //     $OrderV1 =  $exists;
+        // }
 
-        $save = [
-            'user_id' => $request->user_id,
-            'order_id' => $request->order_id
-        ];
-        $OrderV1->fill($save);
-        $OrderV1->save();
+        // $save = [
+        //     'user_id' => $request->user_id,
+        //     'order_id' => $request->order_id
+        // ];
+        // $OrderV1->fill($save);
+        // $OrderV1->save();
 
         return response()->json(['status' => 1, 'message' => 'order Placed ', 'result' => $request->all(), 'AddLineitem' => $AddLineitem]);
     }
@@ -192,35 +188,9 @@ class OrderController extends Controller
             $firstErrorMessage = $validator->errors()->first();
             return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
-        $orders = OrderV1::where('user_id', $request->user_id)->withCount('orderProducts')->orderby('id', 'desc')->get();
-        $callClass = new ProductController;
-        foreach ($orders as $key => $value) {
-            $orderInfoFromApi = $callClass->orderInfo($value->order_id);
-            $aIsPlaced = @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aIsPlaced'];
-            $aGrandTotal = @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aGrandTotal'];
-            $aCartId = @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aCartId'];
-            $aLastUpdated = @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aLastUpdated'];
-            $aOrderNumber =  @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderNumber'];
-            $aOrderSource =  @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderSource'];
-            $aOrderSourceValue =  @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderSourceValue'];
-            $aOrderStatusId =  @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderStatusId'];
-            $aOrderStatusName = @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aOrderStatusName'];
-            $aPaymentStatus =  @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aPaymentStatus'];
 
-            $orderInfo = [
-                'aIsPlaced' =>  $aIsPlaced,
-                'aGrandTotal' =>    $aGrandTotal,
-                'aCartId' =>   $aCartId,
-                'aLastUpdated' =>   $aLastUpdated,
-                'aOrderNumber' =>   $aOrderNumber,
-                'aOrderSource' =>   $aOrderSource,
-                'aOrderSourceValue' =>   $aOrderSourceValue,
-                'aOrderStatusId' =>   $aOrderStatusId,
-                'aOrderStatusName' =>   $aOrderStatusName,
-                'aPaymentStatus' =>   $aPaymentStatus,
-            ];
-            $value['orderInfo'] = $orderInfo;
-        }
+        $orders =  $this->GetOrdersByCriteria($request->user_id);
+
         return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $orders]);
     }
 
@@ -293,5 +263,146 @@ class OrderController extends Controller
         // $order['orderInfo2'] = $orderInfoFromApi;
         // }
         return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $order]);
+    }
+
+
+
+    public function GetOrdersByCriteria($user_id)
+    {
+        $tokenData = User::first();
+        $refreshtoken   = new RegisterController();
+        $check = $refreshtoken->refreshToken($tokenData);
+        $soapRequest = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain" xmlns:arr="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+        
+           <soapenv:Header/>
+        
+           <soapenv:Body>
+        
+              <tem:GetOrdersByCriteria>
+        
+                 <!--Optional:-->
+        
+                 <tem:token>
+        
+                    <!--Optional:-->
+        
+                    <log:ApiId>' . $check->ApiId . '</log:ApiId>
+        
+                    <!--Optional:-->
+        
+                    <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+        
+                    <!--Optional:-->
+        
+                    <log:Id>' . $check->token . '</log:Id>
+        
+                    <!--Optional:-->
+        
+                    <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+        
+                    <!--Optional:-->
+    
+                    <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+        
+                 </tem:token>
+        
+                 <!--Optional:-->
+        
+                 <!--Optional:-->
+        
+                 <tem:criteria><log:AffiliateId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/><log:CategoryId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/><log:UserId>' . $user_id . '</log:UserId></tem:criteria><tem:startIndex>0</tem:startIndex>
+        
+                 <!--Optional:-->
+
+                 <tem:pageSize>50</tem:pageSize>
+        
+              </tem:GetOrdersByCriteria>
+        
+           </soapenv:Body>
+        
+        </soapenv:Envelope>';
+        // Initialize cURL for the SOAP request
+        $curl = curl_init();
+
+        // Configure cURL options
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc', // Update with the actual URL
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $soapRequest,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: http://tempuri.org/IOrdersService/GetOrdersByCriteria'
+            ),
+        ));
+        // Execute the cURL request
+        $response = curl_exec($curl);
+
+        // Handle cURL errors
+        if (curl_errno($curl)) {
+            $response = curl_error($curl);
+            echo 'cURL error: ' . $response;
+        }
+        // Close the cURL session
+        curl_close($curl);
+
+        // Process the response as needed
+        $xmlResponse = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
+        $xmlResponse = simplexml_load_string($xmlResponse);
+        $jsonResponse = json_encode($xmlResponse);
+        $responseArray = json_decode($jsonResponse, true);
+        $orders = [];
+        if (isset($responseArray['sBody']['GetOrdersByCriteriaResponse']['GetOrdersByCriteriaResult']['aList']['aOrder'])) {
+            $ordersFromApi = $responseArray['sBody']['GetOrdersByCriteriaResponse']['GetOrdersByCriteriaResult']['aList']['aOrder'];
+            // dd(gettype($ordersFromApi[0]));
+            if (isset($ordersFromApi[0]) && gettype($ordersFromApi[0]) == 'array') {
+                foreach ($ordersFromApi as $key => $value) {
+                    // dd($value);
+                    $orders[] = $this->filterOrderResponce($value);
+                }
+            } else {
+                $orders[] = $this->filterOrderResponce($ordersFromApi);
+            }
+
+
+            // $orders =  $ordersFromApi;
+        }
+
+        return $orders;
+    }
+
+
+
+    public function filterOrderResponce($orderInfoFromApi)
+    {
+
+        $aLineItems = @$orderInfoFromApi['aLineItems']['aLineItem'];
+        if (!isset($orderInfoFromApi['aLineItems']['aLineItem'][0]) &&  isset($orderInfoFromApi['aLineItems']['aLineItem'])) {
+            $aLineItem = array();
+            array_push($aLineItem, $orderInfoFromApi['aLineItems']['aLineItem']);
+            $aLineItems =  $aLineItem;
+        }
+        $orderInfo = [
+            'aIsPlaced' =>  @$orderInfoFromApi['aIsPlaced'],
+            'aGrandTotal' =>     @$orderInfoFromApi['aGrandTotal'],
+            'aCartId' =>    @$orderInfoFromApi['aCartId'],
+            'aLastUpdated' =>    @$orderInfoFromApi['aLastUpdated'],
+            'aOrderNumber' =>    @$orderInfoFromApi['aOrderNumber'],
+            'aOrderSource' =>    @$orderInfoFromApi['aOrderSource'],
+            'aOrderSourceValue' =>   @$orderInfoFromApi['aOrderSourceValue'],
+            'aOrderStatusId' =>    @$orderInfoFromApi['aOrderStatusId'],
+            'aOrderStatusName' =>    @$orderInfoFromApi['aOrderStatusName'],
+            'aPaymentStatus' =>    @$orderInfoFromApi['aPaymentStatus'],
+            'aBillingAddress' =>   @$orderInfoFromApi['aBillingAddress'],
+            'aShippingAddress' =>   @$orderInfoFromApi['aShippingAddress'],
+            'aLineItems' =>   $aLineItems,
+        ];
+
+        return  $orderInfo;
     }
 }
