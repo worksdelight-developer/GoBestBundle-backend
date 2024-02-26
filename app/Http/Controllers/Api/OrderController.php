@@ -189,7 +189,7 @@ class OrderController extends Controller
             return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
 
-        $orders =  $this->GetOrdersByCriteria($request->user_id);
+        $orders =  $this->GetOrdersByCriteria($request->user_id, []);
 
         return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $orders]);
     }
@@ -267,60 +267,84 @@ class OrderController extends Controller
 
 
 
-    public function GetOrdersByCriteria($user_id)
+    public function GetOrdersByCriteria($user_id, $filters)
     {
+        // dd($filters);
+        $startIndex = 0;
+        $pageSize = 50;
+        $dateFilter = '';
+        if (isset($filters['StartDate']) && isset($filters['EndDate'])) {
+            $startDate = Carbon::parse($filters['StartDate']);
+            $endDate = Carbon::parse($filters['EndDate']);
+            $formattedFirstDay = $startDate->format('Y-m-d\TH:i:s.uP');
+            $formattedLastDay = $endDate->format('Y-m-d\TH:i:s.uP');
+            $dateFilter = '<log:EndDate>' . $formattedLastDay . '</log:EndDate><log:StartDate>' . $formattedFirstDay . '</log:StartDate>';
+        }
+
+        if (isset($filters->startIndex) && isset($filters->pageSize)) {
+            $startIndex =   $filters->startIndex;
+            $pageSize =   $filters->pageSize;
+        }
+
+
         $tokenData = User::first();
         $refreshtoken   = new RegisterController();
         $check = $refreshtoken->refreshToken($tokenData);
-        $soapRequest = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain" xmlns:arr="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
-        
-           <soapenv:Header/>
-        
-           <soapenv:Body>
-        
-              <tem:GetOrdersByCriteria>
-        
-                 <!--Optional:-->
-        
-                 <tem:token>
-        
-                    <!--Optional:-->
-        
-                    <log:ApiId>' . $check->ApiId . '</log:ApiId>
-        
-                    <!--Optional:-->
-        
-                    <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
-        
-                    <!--Optional:-->
-        
-                    <log:Id>' . $check->token . '</log:Id>
-        
-                    <!--Optional:-->
-        
-                    <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
-        
-                    <!--Optional:-->
-    
-                    <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
-        
-                 </tem:token>
-        
-                 <!--Optional:-->
-        
-                 <!--Optional:-->
-        
-                 <tem:criteria><log:AffiliateId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/><log:CategoryId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/><log:UserId>' . $user_id . '</log:UserId></tem:criteria><tem:startIndex>0</tem:startIndex>
-        
-                 <!--Optional:-->
 
-                 <tem:pageSize>50</tem:pageSize>
-        
-              </tem:GetOrdersByCriteria>
-        
-           </soapenv:Body>
-        
-        </soapenv:Envelope>';
+        $soapRequest = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain" xmlns:arr="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+
+        <soapenv:Header/>
+     
+        <soapenv:Body>
+     
+           <tem:GetOrdersByCriteria>
+     
+              <!--Optional:-->
+     
+              <tem:token>
+     
+                 <!--Optional:-->
+     
+                 <log:ApiId>' . $check->ApiId . '</log:ApiId>
+     
+                 <!--Optional:-->
+     
+                 <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+     
+                 <!--Optional:-->
+     
+                 <log:Id>' . $check->token . '</log:Id>
+     
+                 <!--Optional:-->
+     
+                 <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+     
+                 <!--Optional:-->
+     
+                 <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+     
+              </tem:token>
+     
+              <!--Optional:-->
+     
+              <!--Optional:-->
+     
+              <tem:criteria><log:AffiliateId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/><log:CategoryId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>' . $dateFilter . '<log:UserId>' . $user_id . '</log:UserId></tem:criteria><tem:startIndex>' . $startIndex . '</tem:startIndex>
+     
+              <!--Optional:-->
+     
+              <tem:pageSize>' . $pageSize . '</tem:pageSize>
+     
+           </tem:GetOrdersByCriteria>
+     
+        </soapenv:Body>
+     
+     </soapenv:Envelope>';
+
+
+
+
+
         // Initialize cURL for the SOAP request
         $curl = curl_init();
 
@@ -404,5 +428,68 @@ class OrderController extends Controller
         ];
 
         return  $orderInfo;
+    }
+
+
+
+
+    function suggestNextOrderInfo($orderData, $userInfo)
+    {
+        $reorderInterval = 24;
+        $suggestedNextOrderInfo = [];
+        $addedProducts = [];
+        $callClass = new ProductController;
+        foreach ($orderData as $order) {
+            foreach ($order['aLineItems'] as $aLineItems) {
+                $deliveryDate = Carbon::parse($order['aLastUpdated']);
+                $nextOrderDate = $deliveryDate->copy()->addDays($reorderInterval);
+                $productId = $aLineItems['aProductId'];
+                $quantity = $aLineItems['aQuantity'];
+                $orderId = $aLineItems['aOrderId'];
+                if (!isset($addedProducts[$productId])) {
+                    $nextOrderInfo = [
+                        'next_order_date' => $nextOrderDate->format('Y-m-d'),
+                        'product_id' => $productId,
+                        'product_info' => $callClass->productInfo($productId, $userInfo),
+                        'order_id' => $orderId,
+                        'quantity' => $quantity,
+                    ];
+                    $suggestedNextOrderInfo[] = $nextOrderInfo;
+                    $addedProducts[$productId] = true;
+                }
+            }
+        }
+
+        return $suggestedNextOrderInfo;
+    }
+
+
+    public function predictNextOrder(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+        ]);
+        if ($validator->fails()) {
+            $firstErrorMessage = $validator->errors()->first();
+            return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
+        }
+        $user_id = $request->user_id;
+        // $firstDayOfMonth = now()->firstOfMonth();
+        // $lastDayOfMonth = now()->endOfMonth();
+        $filters = [
+            'StartDate' => now()->firstOfMonth(),
+            'EndDate' =>  now()->endOfMonth(),
+        ];
+        $orders =  $this->GetOrdersByCriteria($user_id, $filters);
+        // dd($orders);
+        $suggestedNextOrderInfo = $this->suggestNextOrderInfo($orders, []);
+        // foreach($orders as $order){
+
+        // }
+        // dd('');
+
+
+
+        return response()->json(['status' => 1, 'message' => 'predictNextOrder 2 fetched', 'response' => $suggestedNextOrderInfo]);
     }
 }
