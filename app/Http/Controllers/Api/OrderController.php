@@ -431,8 +431,6 @@ class OrderController extends Controller
     }
 
 
-
-
     function suggestNextOrderInfo($orderData, $userInfo)
     {
         $reorderInterval = 24;
@@ -474,22 +472,13 @@ class OrderController extends Controller
             return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
         $user_id = $request->user_id;
-        // $firstDayOfMonth = now()->firstOfMonth();
-        // $lastDayOfMonth = now()->endOfMonth();
         $filters = [
             'StartDate' => now()->firstOfMonth(),
             'EndDate' =>  now()->endOfMonth(),
         ];
         $orders =  $this->GetOrdersByCriteria($user_id, $filters);
-        // dd($orders);
         $suggestedNextOrderInfo = $this->suggestNextOrderInfo($orders, []);
-        // foreach($orders as $order){
 
-        // }
-        // dd('');
-
-
-
-        return response()->json(['status' => 1, 'message' => 'predictNextOrder 2 fetched', 'response' => $suggestedNextOrderInfo]);
+        return response()->json(['status' => 1, 'message' => 'predictNextOrder fetched', 'response' => $suggestedNextOrderInfo]);
     }
 }
