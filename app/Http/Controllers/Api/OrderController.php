@@ -189,7 +189,15 @@ class OrderController extends Controller
             return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
 
-        $orders =  $this->GetOrdersByCriteria($request->user_id, []);
+        $filters = [];
+        if (isset($request->startIndex) && isset($request->pageSize)) {
+            $filters = [
+                'startIndex' => $request->startIndex,
+                'pageSize' =>  $request->pageSize,
+            ];
+        }
+
+        $orders =  $this->GetOrdersByCriteria($request->user_id, $filters);
 
         return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $orders]);
     }
@@ -281,9 +289,9 @@ class OrderController extends Controller
             $dateFilter = '<log:EndDate>' . $formattedLastDay . '</log:EndDate><log:StartDate>' . $formattedFirstDay . '</log:StartDate>';
         }
 
-        if (isset($filters->startIndex) && isset($filters->pageSize)) {
-            $startIndex =   $filters->startIndex;
-            $pageSize =   $filters->pageSize;
+        if (isset($filters['startIndex']) && isset($filters['pageSize'])) {
+            $startIndex =  $filters['startIndex'];
+            $pageSize =   $filters['pageSize'];
         }
 
 
@@ -404,13 +412,27 @@ class OrderController extends Controller
 
     public function filterOrderResponce($orderInfoFromApi)
     {
+        $callClass = new ProductController;
+        $aLineItems = [];
 
-        $aLineItems = @$orderInfoFromApi['aLineItems']['aLineItem'];
         if (!isset($orderInfoFromApi['aLineItems']['aLineItem'][0]) &&  isset($orderInfoFromApi['aLineItems']['aLineItem'])) {
             $aLineItem = array();
             array_push($aLineItem, $orderInfoFromApi['aLineItems']['aLineItem']);
             $aLineItems =  $aLineItem;
+        } else if (isset($orderInfoFromApi['aLineItems']['aLineItem'])) {
+            $aLineItems =  $orderInfoFromApi['aLineItems']['aLineItem'];
         }
+        if (count($aLineItems)  === 1) {
+            $productInfo =  $callClass->productInfo($aLineItems[0]['aProductId'], []);
+            $aLineItems[0]['aImageFileLarge'] = $productInfo['aImageFileLarge'];
+        }
+        if (count($aLineItems) > 1) {
+            foreach ($aLineItems as $key => $value) {
+                $productInfo =  $callClass->productInfo($value['aProductId'], []);
+                $aLineItems[$key]['aImageFileLarge'] = $productInfo['aImageFileLarge'];
+            }
+        }
+
         $orderInfo = [
             'aIsPlaced' =>  @$orderInfoFromApi['aIsPlaced'],
             'aGrandTotal' =>     @$orderInfoFromApi['aGrandTotal'],
@@ -425,6 +447,7 @@ class OrderController extends Controller
             'aBillingAddress' =>   @$orderInfoFromApi['aBillingAddress'],
             'aShippingAddress' =>   @$orderInfoFromApi['aShippingAddress'],
             'aLineItems' =>   $aLineItems,
+
         ];
 
         return  $orderInfo;
