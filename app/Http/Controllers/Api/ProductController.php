@@ -987,20 +987,48 @@ class ProductController extends Controller
             // 'productIds' => 'required',
             'IsExpired' => 'required',
             'TokenRejected' => 'required',
-            'street' => 'required',
-            'code' => 'required',
-            'postalCode' => 'required',
-            'administrativeArea' => 'required',
-            'subadministrativeArea' => 'required',
-            'locality' => 'required',
-            'subLocality' => 'required',
-
+            // 'street' => 'required',
+            // 'code' => 'required',
+            // 'postalCode' => 'required',
+            // 'administrativeArea' => 'required',
+            // 'subadministrativeArea' => 'required',
+            // 'locality' => 'required',
+            // 'subLocality' => 'required',
 
         ]);
         if ($validator->fails()) {
             $firstErrorMessage = $validator->errors()->first();
             return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
+        $street = '?';
+        $code = '?';
+        $postalCode = '?';
+        $administrativeArea = '?';
+        $subadministrativeArea = '?';
+        $locality = '?';
+        $subLocality = '?';
+        if (isset($request->street) && !empty($request->street)) {
+            $street = $request->street;
+        }
+        if (isset($request->code) && !empty($request->code)) {
+            $code = $request->code;
+        }
+        if (isset($request->postalCode) && !empty($request->postalCode)) {
+            $postalCode = $request->postalCode;
+        }
+        if (isset($request->administrativeArea) && !empty($request->administrativeArea)) {
+            $administrativeArea = $request->administrativeArea;
+        }
+        if (isset($request->subadministrativeArea) && !empty($request->subadministrativeArea)) {
+            $subadministrativeArea = $request->subadministrativeArea;
+        }
+        if (isset($request->locality) && !empty($request->locality)) {
+            $locality = $request->locality;
+        }
+        if (isset($request->subLocality) && !empty($request->subLocality)) {
+            $subLocality = $request->subLocality;
+        }
+
         try {
 
             $tokenData = User::first();
@@ -1196,7 +1224,7 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <log:Phone>?</log:Phone>
                 <!--Optional:-->
-                <log:PostalCode>' . $request->postalCode . '</log:PostalCode>
+                <log:PostalCode>' . $postalCode . '</log:PostalCode>
                 <!--Optional:-->
                 <log:RegionCode>?</log:RegionCode>
                 <!--Optional:-->
@@ -1215,7 +1243,7 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <log:Company>?</log:Company>
                 <!--Optional:-->
-                <log:CountryCode>' . $request->code . '</log:CountryCode>
+                <log:CountryCode>' . $code . '</log:CountryCode>
                 <!--Optional:-->
                 <log:DepartmentId>?</log:DepartmentId>
                 <!--Optional:-->
@@ -1243,7 +1271,7 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <log:Phone>?</log:Phone>
                 <!--Optional:-->
-                <log:PostalCode>' . $request->postalCode . '</log:PostalCode>
+                <log:PostalCode>' . $postalCode . '</log:PostalCode>
                 <!--Optional:-->
                 <log:RegionCode></log:RegionCode>
                 <!--Optional:-->

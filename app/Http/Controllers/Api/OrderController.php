@@ -13,6 +13,10 @@ use App\Models\Inventory;
 use App\Models\User;
 use App\Models\OrderV1;
 use App\Models\OrderProductV1;
+use App\Models\UserPurchaseHistory;
+use App\Models\ABillingAddress;
+use App\Models\AShippingAddress;
+use App\Models\ALineItems;
 
 
 
@@ -32,34 +36,37 @@ class OrderController extends Controller
 
         $tokenData = User::first();
         $refreshtoken   = new RegisterController();
+        // dd($tokenData);
         $check = $refreshtoken->refreshToken($tokenData);
 
-        $addItem = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.
-        datacontract.org/2004/07/Logicblock.Commerce.Domain">
-                 <soapenv:Header/>
-                 <soapenv:Body>
-                <tem:AddLineItemByProductId>
-                <!--Optional:-->
-                <tem:token>
-                <log:ApiId>' . $check->ApiId . '</log:ApiId>
-                <!--Optional:-->
-                <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
-                <!--Optional:-->
-                <log:Id>' . $check->token . '</log:Id>
-                <!--Optional:-->
-                <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
-                <!--Optional:-->
-                <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
-                </tem:token>
-                <!--Optional:-->
-                <tem:orderId>' . $order_id . '</tem:orderId>
-                <!--Optional:-->
-                <tem:productId>' . $product_id . '</tem:productId>
-                <!--Optional:-->
-                <tem:quantity>' . $quantity . '</tem:quantity>
-                </tem:AddLineItemByProductId>
-                </soapenv:Body>
-                </soapenv:Envelope>';
+
+
+        $addItem = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <tem:AddLineItemByProductId>
+         <!--Optional:-->
+         <tem:token>
+            <!--Optional:-->
+            <log:ApiId>' . $check->ApiId . '</log:ApiId>
+            <!--Optional:-->
+            <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+            <!--Optional:-->
+            <log:Id>' . $check->token . '</log:Id>
+            <!--Optional:-->
+            <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+            <!--Optional:-->
+            <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+         </tem:token>
+         <!--Optional:-->
+         <tem:orderId>' . $order_id . '</tem:orderId>
+         <!--Optional:-->
+         <tem:productId>' . $product_id . '</tem:productId>
+         <!--Optional:-->
+         <tem:quantity>' . $quantity . '</tem:quantity>
+      </tem:AddLineItemByProductId>
+   </soapenv:Body>
+</soapenv:Envelope>';
 
         //  dd($addItem);
 
@@ -97,7 +104,7 @@ class OrderController extends Controller
         if (isset($responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult']) && !empty($responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult'])) {
             return $responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult'];
         } else {
-            return 'ee';
+            return $responseArray1;
         }
     }
 
@@ -148,14 +155,15 @@ class OrderController extends Controller
             // // }
             // $OrderProductV1->fill($save);
             // $OrderProductV1->save();
-            if (count($products) !== 1  && $key !== 0) {
-                $AddLineitem[] = $this->AddLineitem($request->order_id, $value, $quantity);
+            if (count($products) > 1 && $key > 0) {
                 DB::table('order_and_product')->where(['order_id' => $request->order_id, 'UID' => $request->ApiId])->update(['status' => 'order']);
                 DB::table('cart')->where(['product_id' => $value, 'user_email' => $request->user_email])->delete();
                 $checkOrder = DB::table('order_history')->where(['order_id' => $request->order_id, 'user_id' => $request->ApiId])->first();
                 if (empty($checkOrder)) {
                     DB::table('order_history')->insert(['order_id' => $request->order_id, 'user_id' => $request->ApiId]);
                 }
+				 $AddLineitem[] = $this->AddLineitem($request->order_id, $value, $quantity);
+
             }
         }
 
@@ -174,6 +182,8 @@ class OrderController extends Controller
         // ];
         // $OrderV1->fill($save);
         // $OrderV1->save();
+
+        //$purchaseHistory = $this->getPurchaseHistory($request);
 
         return response()->json(['status' => 1, 'message' => 'order Placed ', 'result' => $request->all(), 'AddLineitem' => $AddLineitem]);
     }
@@ -198,6 +208,137 @@ class OrderController extends Controller
         }
 
         $orders =  $this->GetOrdersByCriteria($request->user_id, $filters);
+        foreach ($orders  as $order) {
+            $aOrderId = '';
+            foreach ($order['aLineItems'] as $product) {
+                $aOrderId = $product['aOrderId'];
+                $saveaLineItems = [
+                    'aOrderNumber' => is_string($order['aOrderNumber']) ? $order['aOrderNumber'] : '',
+                    'aId' => is_string($product['aId']) ? $product['aId'] : '',
+                    'aLastUpdated' =>  is_string($product['aLastUpdated']) ? $product['aLastUpdated'] : '',
+                    'aOrderId' =>  $aOrderId,
+                    'aProductId' =>  is_string($product['aProductId']) ?  $product['aProductId'] : '',
+                    'aProductName' =>  is_string($product['aProductName']) ?  $product['aProductName'] : '',
+                    'aProductSku' =>  is_string($product['aProductSku']) ?  $product['aProductSku'] : '',
+                    'aProductUnitOfMeasure' => is_string($product['aProductUnitOfMeasure']) ?   $product['aProductUnitOfMeasure'] : '',
+                    'aQuantity' => is_string($product['aQuantity']) ?   $product['aQuantity'] : '',
+                    'aUnitCost' =>  is_string($product['aUnitCost']) ?  $product['aUnitCost'] : '',
+                    'aUnitPrice' =>  is_string($product['aUnitPrice']) ?  $product['aUnitPrice'] : '',
+                    'aImageFileLarge' =>  is_string($product['aImageFileLarge']) ?  $product['aImageFileLarge'] : '',
+                    'aVendorId' => is_string($product['aVendorId']) ?   $product['aVendorId'] : '',
+                    'aLineTotal' => is_string($product['aLineTotal']) ?   $product['aLineTotal'] : '',
+                ];
+                $oldRecordALineItems = ALineItems::where($saveaLineItems)->first();
+                if (!isset($oldRecordALineItems->id)) {
+                    $ALineItems = new ALineItems;
+                    $ALineItems->fill($saveaLineItems);
+                    $ALineItems->save();
+                }
+            }
+            $saveOrder = [
+                'user_id' => $request->user_id,
+                'aOrderId' =>  $aOrderId,
+                'aIsPlaced' => is_string($order['aIsPlaced']) ?  $order['aIsPlaced'] : '',
+                'aGrandTotal' =>  is_string($order['aGrandTotal']) ?  $order['aGrandTotal'] : '',
+                'aCartId' =>  is_string($order['aCartId']) ?  $order['aCartId'] : '',
+                'aLastUpdated' =>  is_string($order['aLastUpdated']) ?  $order['aLastUpdated'] : '',
+                'aOrderNumber' =>  is_string($order['aOrderNumber']) ?  $order['aOrderNumber'] : '',
+                'aOrderSource' =>  is_string($order['aOrderSource']) ?   $order['aOrderSource'] : '',
+                'aOrderSourceValue' =>  is_string($order['aOrderSourceValue']) ?   $order['aOrderSourceValue'] : '',
+                'aOrderStatusId' =>  is_string($order['aOrderStatusId']) ?   $order['aOrderStatusId'] : '',
+                'aOrderStatusName' =>  is_string($order['aOrderStatusName']) ?   $order['aOrderStatusName'] : '',
+                'aPaymentStatus' =>  is_string($order['aPaymentStatus']) ?   $order['aPaymentStatus'] : '',
+            ];
+
+            $oldRecordUserPurchaseHistory = UserPurchaseHistory::where([
+                'user_id' => $request->user_id,
+                'aOrderId' =>  $aOrderId
+            ])->first();
+            if (isset($oldRecordUserPurchaseHistory->id)) {
+                $UserPurchaseHistory = $oldRecordUserPurchaseHistory;
+                $UserPurchaseHistory->fill($saveOrder);
+                $UserPurchaseHistory->update();
+            } else {
+
+                $UserPurchaseHistory = new UserPurchaseHistory;
+                $UserPurchaseHistory->fill($saveOrder);
+                $UserPurchaseHistory->save();
+            }
+
+
+            $saveABillingAddress = [
+                'aOrderId' =>  $aOrderId,
+                'aOrderNumber' => is_string($order['aOrderNumber']) ? $order['aOrderNumber'] : '',
+                'aBranchCode' => is_string($order['aBillingAddress']['aBranchCode']) ? $order['aBillingAddress']['aBranchCode'] : '',
+                'aCity' => is_string($order['aBillingAddress']['aCity']) ? $order['aBillingAddress']['aCity'] : '',
+                'aCompany' => is_string($order['aBillingAddress']['aCompany']) ? $order['aBillingAddress']['aCompany'] : '',
+                'aCountryCode' => is_string($order['aBillingAddress']['aCountryCode']) ? $order['aBillingAddress']['aCountryCode'] : '',
+                'aDepartmentId' => is_string($order['aBillingAddress']['aDepartmentId']) ? $order['aBillingAddress']['aDepartmentId'] : '',
+                'aDepartmentName' => is_string($order['aBillingAddress']['aDepartmentName']) ?  $order['aBillingAddress']['aDepartmentName'] : '',
+                'aEnabled' => is_string($order['aBillingAddress']['aEnabled']) ?  $order['aBillingAddress']['aEnabled'] : '',
+                'aFax' => is_string($order['aBillingAddress']['aFax']) ?  $order['aBillingAddress']['aFax'] : '',
+                'aFirstName' => is_string($order['aBillingAddress']['aFirstName']) ?  $order['aBillingAddress']['aFirstName'] : '',
+                'aId' => is_string($order['aBillingAddress']['aId']) ?  $order['aBillingAddress']['aId'] : '',
+                'aLastName' => is_string($order['aBillingAddress']['aLastName']) ?  $order['aBillingAddress']['aLastName'] : '',
+                'aLine1' => is_string($order['aBillingAddress']['aLine1']) ?  $order['aBillingAddress']['aLine1'] : '',
+                'aLine2' => is_string($order['aBillingAddress']['aLine2']) ?  $order['aBillingAddress']['aLine2'] : '',
+                'aLine3' => is_string($order['aBillingAddress']['aLine3']) ?  $order['aBillingAddress']['aLine3'] : '',
+                'aMiddleInitial' => is_string($order['aBillingAddress']['aMiddleInitial']) ?  $order['aBillingAddress']['aMiddleInitial'] : '',
+                'aNickName' => is_string($order['aBillingAddress']['aNickName']) ?  $order['aBillingAddress']['aNickName'] : '',
+                'aPhone' => is_string($order['aBillingAddress']['aPhone']) ?  $order['aBillingAddress']['aPhone'] : '',
+                'aPostalCode' => is_string($order['aBillingAddress']['aPostalCode']) ?  $order['aBillingAddress']['aPostalCode'] : '',
+                'aRegionCode' => is_string($order['aBillingAddress']['aRegionCode']) ?  $order['aBillingAddress']['aRegionCode'] : '',
+                'aRouteCode' => is_string($order['aBillingAddress']['aRouteCode']) ?  $order['aBillingAddress']['aRouteCode'] : '',
+                'aThirdPartyId' => is_string($order['aBillingAddress']['aThirdPartyId']) ?  $order['aBillingAddress']['aThirdPartyId'] : '',
+            ];
+            $oldRecordABillingAddress = ABillingAddress::where($saveABillingAddress)->first();
+            if (isset($oldRecordABillingAddress->id)) {
+                $ABillingAddress =  $oldRecordABillingAddress;
+                $ABillingAddress->fill($saveABillingAddress);
+                $ABillingAddress->update();
+            } else {
+                $ABillingAddress =  new ABillingAddress;
+                $ABillingAddress->fill($saveABillingAddress);
+                $ABillingAddress->save();
+            }
+
+
+            $saveAShippingAddress = [
+                'aOrderId' =>  $aOrderId,
+                'aOrderNumber' => is_string($order['aOrderNumber']) ? $order['aOrderNumber'] : '',
+                'aBranchCode' => is_string($order['aShippingAddress']['aBranchCode']) ? $order['aShippingAddress']['aBranchCode'] : '',
+                'aCity' => is_string($order['aShippingAddress']['aCity']) ? $order['aShippingAddress']['aCity'] : '',
+                'aCompany' => is_string($order['aShippingAddress']['aCompany']) ? $order['aShippingAddress']['aCompany'] : '',
+                'aCountryCode' => is_string($order['aShippingAddress']['aCountryCode']) ? $order['aShippingAddress']['aCountryCode'] : '',
+                'aDepartmentId' => is_string($order['aShippingAddress']['aDepartmentId']) ? $order['aShippingAddress']['aDepartmentId'] : '',
+                'aDepartmentName' => is_string($order['aShippingAddress']['aDepartmentName']) ?  $order['aShippingAddress']['aDepartmentName'] : '',
+                'aEnabled' => is_string($order['aShippingAddress']['aEnabled']) ?  $order['aShippingAddress']['aEnabled'] : '',
+                'aFax' => is_string($order['aShippingAddress']['aFax']) ?  $order['aShippingAddress']['aFax'] : '',
+                'aFirstName' => is_string($order['aShippingAddress']['aFirstName']) ?  $order['aShippingAddress']['aFirstName'] : '',
+                'aId' => is_string($order['aShippingAddress']['aId']) ?  $order['aShippingAddress']['aId'] : '',
+                'aLastName' => is_string($order['aShippingAddress']['aLastName']) ?  $order['aShippingAddress']['aLastName'] : '',
+                'aLine1' => is_string($order['aShippingAddress']['aLine1']) ?  $order['aShippingAddress']['aLine1'] : '',
+                'aLine2' => is_string($order['aShippingAddress']['aLine2']) ?  $order['aShippingAddress']['aLine2'] : '',
+                'aLine3' => is_string($order['aShippingAddress']['aLine3']) ?  $order['aShippingAddress']['aLine3'] : '',
+                'aMiddleInitial' => is_string($order['aShippingAddress']['aMiddleInitial']) ?  $order['aShippingAddress']['aMiddleInitial'] : '',
+                'aNickName' => is_string($order['aShippingAddress']['aNickName']) ?  $order['aShippingAddress']['aNickName'] : '',
+                'aPhone' => is_string($order['aShippingAddress']['aPhone']) ?  $order['aShippingAddress']['aPhone'] : '',
+                'aPostalCode' => is_string($order['aShippingAddress']['aPostalCode']) ?  $order['aShippingAddress']['aPostalCode'] : '',
+                'aRegionCode' => is_string($order['aShippingAddress']['aRegionCode']) ?  $order['aShippingAddress']['aRegionCode'] : '',
+                'aRouteCode' => is_string($order['aShippingAddress']['aRouteCode']) ?  $order['aShippingAddress']['aRouteCode'] : '',
+                'aThirdPartyId' => is_string($order['aShippingAddress']['aThirdPartyId']) ?  $order['aShippingAddress']['aThirdPartyId'] : '',
+            ];
+            $oldRecordAShippingAddress = AShippingAddress::where($saveAShippingAddress)->first();
+            if (isset($oldRecordAShippingAddress->id)) {
+                $AShippingAddress = $oldRecordAShippingAddress;
+                $AShippingAddress->fill($saveAShippingAddress);
+                $AShippingAddress->update();
+            } else {
+                $AShippingAddress = new AShippingAddress;
+                $AShippingAddress->fill($saveAShippingAddress);
+                $AShippingAddress->save();
+            }
+        }
 
         return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $orders]);
     }
@@ -503,5 +644,18 @@ class OrderController extends Controller
         $suggestedNextOrderInfo = $this->suggestNextOrderInfo($orders, []);
 
         return response()->json(['status' => 1, 'message' => 'predictNextOrder fetched', 'response' => $suggestedNextOrderInfo]);
+    }
+
+    public function getPurchaseHistoryV2(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+        ]);
+        if ($validator->fails()) {
+            $firstErrorMessage = $validator->errors()->first();
+            return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
+        }
+        $records = UserPurchaseHistory::where('user_id', $request->user_id)->orderby('id', 'desc')->with('aBillingAddress', 'aShippingAddress', 'aLineItems')->get();
+        return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $records]);
     }
 }
