@@ -139,6 +139,7 @@ class InventoryController extends Controller
             'id' => 'required',
             'quantity' => 'required',
             'min_quantity'  => 'required',
+            'type'  => 'required',
         ]);
         $response = [];
         if ($validator->fails()) {
@@ -160,6 +161,7 @@ class InventoryController extends Controller
                     'product_id' => $existsRecord->product_id,
                     'quantity' => $request->quantity,
                     'min_quantity'  => $request->min_quantity,
+                    'type' => $request->type,
                 ];
                 $Inventory =  $existsRecord;
                 $Inventory->fill($save);
