@@ -26,7 +26,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::post('CreateUserAccount', [RegisterController::class, 'CreateUserAccount']);
-Route::post('GetUserAccountById', [RegisterController::class, 'GetUserAccountById']);
+Route::post('GetUserAccountById', [RegisterController::class, 'getUserInfo']);
 Route::post('login', [RegisterController::class, 'login']);
 Route::post('SetUserAccountPassword', [RegisterController::class, 'SetUserAccountPassword']);
 Route::post('UpdateUserAccount', [RegisterController::class, 'UpdateUserAccount']);
@@ -65,6 +65,7 @@ Route::get('inventoryList', [InventoryController::class, 'inventoryList']);
 Route::post('orderPlacedV1', [OrderController::class, 'orderPlacedV1']);
 Route::get('getPurchaseHistoryV1', [OrderController::class, 'getPurchaseHistory']);
 Route::get('getPurchaseHistoryV2', [OrderController::class, 'getPurchaseHistoryV2']);
-
 Route::get('getOrderDetail', [OrderController::class, 'getOrderDetail']);
+Route::get('getAllOrders', [OrderController::class, 'getAllOrders']);
+Route::get('getOrderStatuses', [OrderController::class, 'getOrderStatuses']);
 Route::post('scanOut', [InventoryController::class, 'scanOut']);

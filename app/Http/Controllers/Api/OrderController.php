@@ -418,6 +418,8 @@ class OrderController extends Controller
     public function GetOrdersByCriteria($user_id, $filters)
     {
         // dd($filters);
+        $searchByUser = '<log:UserId>' . $user_id . '</log:UserId>';
+
         $startIndex = 0;
         $pageSize = 50;
         $dateFilter = '';
@@ -434,6 +436,12 @@ class OrderController extends Controller
             $pageSize =   $filters['pageSize'];
         }
 
+
+        if ($user_id == 0) {
+            $searchByUser = '';
+            $startIndex =  $filters['startIndex'];
+            $pageSize =   $filters['pageSize'];
+        }
 
         $tokenData = User::first();
         $refreshtoken   = new RegisterController();
@@ -477,7 +485,7 @@ class OrderController extends Controller
      
               <!--Optional:-->
      
-              <tem:criteria><log:AffiliateId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/><log:CategoryId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>' . $dateFilter . '<log:UserId>' . $user_id . '</log:UserId></tem:criteria><tem:startIndex>' . $startIndex . '</tem:startIndex>
+              <tem:criteria><log:AffiliateId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/><log:CategoryId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>' . $dateFilter . '' . $searchByUser . '</tem:criteria><tem:startIndex>' . $startIndex . '</tem:startIndex>
      
               <!--Optional:-->
      
@@ -676,5 +684,175 @@ class OrderController extends Controller
         }
         $records = UserPurchaseHistory::where('user_id', $request->user_id)->orderby('id', 'desc')->with('aBillingAddress', 'aShippingAddress', 'aLineItems')->get();
         return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $records]);
+    }
+
+    public function getAllOrders(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+            'startIndex' => 'required',
+            'pageSize' => 'required',
+        ]);
+        if ($validator->fails()) {
+            $firstErrorMessage = $validator->errors()->first();
+            return response()->json(['status' => false, 'message' => __($firstErrorMessage)]);
+        }
+        $RegisterClass  = new RegisterController();
+        $check = $RegisterClass->GetUserAccountById($request);
+        if (isset($check['aAccountRole']) && $check['aAccountRole'] != 'Admin') {
+            return response()->json(['status' => false, 'message' => __('Only For Admin..')]);
+        }
+        $orders = $this->GetOrdersByCriteria(0, ['startIndex' => $request->startIndex, 'pageSize' => $request->pageSize]);
+        return response()->json(['status' => true, 'message' => 'Record Fetched', 'result' => $orders]);
+    }
+
+
+    public function updateOrder(Request $request)
+    {
+        try {
+
+            $validator = Validator::make($request->all(), [
+                'order_id' => 'required',
+                'order_status_id' => 'required',
+                'order_status_name' => 'required',
+            ]);
+            if ($validator->fails()) {
+                $firstErrorMessage = $validator->errors()->first();
+                return response()->json(['status' => false, 'message' => __($firstErrorMessage)]);
+            }
+
+            $tokenData = User::first();
+            $refreshtoken   = new RegisterController();
+            $check = $refreshtoken->refreshToken($tokenData);
+            // Construct SOAP envelope
+            $soapRequest = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+         <soapenv:Header/>
+         <soapenv:Body>
+            <tem:UpdateOrder>
+               <!--Optional:-->
+               <tem:token>
+                  <!--Optional:-->
+                  <log:ApiId>' . $check->ApiId . '</log:ApiId>
+                  <!--Optional:-->
+                  <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                  <!--Optional:-->
+                  <log:Id>' . $check->token . '</log:Id>
+                  <!--Optional:-->
+                  <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+                  <!--Optional:-->
+                  <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+               </tem:token>
+               <!--Optional:-->
+               <tem:orderId>' . $request->order_id . '</tem:orderId>
+               <!--Optional:-->
+               <tem:order>
+                  <!--Optional:-->
+                  <log:OrderStatusId>' . $request->order_status_id . '</log:OrderStatusId>
+                  <!--Optional:-->
+                  <log:OrderStatusName>' . $request->order_status_name . '</log:OrderStatusName>
+               </tem:order>
+            </tem:UpdateOrder>
+         </soapenv:Body>
+      </soapenv:Envelope>';
+
+            // Initialize cURL for the SOAP request
+            $curl = curl_init();
+
+            // Configure cURL options
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc', // Update with the actual URL
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => $soapRequest,
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: text/xml; charset=utf-8',
+                    'SOAPAction: http://tempuri.org/IOrdersService/UpdateOrder'
+                ),
+            ));
+            // Execute the cURL request
+            $response = curl_exec($curl);
+
+            // Handle cURL errors
+            if (curl_errno($curl)) {
+                $response = curl_error($curl);
+                echo 'cURL error: ' . $response;
+            }
+            // Close the cURL session
+            curl_close($curl);
+
+            // Process the response as needed
+            $xmlResponse = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
+            $xmlResponse = simplexml_load_string($xmlResponse);
+            $jsonResponse = json_encode($xmlResponse);
+            $responseArray = json_decode($jsonResponse, true);
+            dd($responseArray);
+            $order = [];
+        } catch (\Exception $e) {
+            // Handle exceptions
+            return response()->json(['status' => 0, 'message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
+    }
+    public function getOrderStatuses(Request $request)
+    {
+        $tokenData = User::first();
+        $refreshtoken   = new RegisterController();
+        $check = $refreshtoken->refreshToken($tokenData);
+
+        // Construct SOAP envelope for retrieving order statuses
+        $soapRequest = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <tem:GetOrderStatuses>
+                 <!--Optional:-->
+                 <tem:token>
+                    <!--Optional:-->
+                    <log:ApiId>' . $check->ApiId . '</log:ApiId>
+                    <!--Optional:-->
+                    <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                    <!--Optional:-->
+                    <log:Id>' . $check->token . '</log:Id>
+                    <!--Optional:-->
+                    <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+                    <!--Optional:-->
+                    <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+                 </tem:token>
+              </tem:GetOrderStatuses>
+           </soapenv:Body>
+        </soapenv:Envelope>';
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc', // Update with the actual URL
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $soapRequest,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: http://tempuri.org/IOrdersService/GetOrderStatuses'
+            ),
+        ));
+        $response = curl_exec($curl);
+        if (curl_errno($curl)) {
+            $response = curl_error($curl);
+            echo 'cURL error: ' . $response;
+        }
+        curl_close($curl);
+        $xmlResponse = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
+        $xmlResponse = simplexml_load_string($xmlResponse);
+        $jsonResponse = json_encode($xmlResponse);
+        $responseArray = json_decode($jsonResponse, true);
+        $statues = $responseArray['sBody']['GetOrderStatusesResponse']['GetOrderStatusesResult']['aOrderStatus'];
+        return response()->json(['status' => true, 'message' => 'Record Fetched', 'response' => $statues]);
     }
 }

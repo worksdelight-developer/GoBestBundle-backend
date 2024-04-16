@@ -262,7 +262,6 @@ class RegisterController extends Controller
                     $response = $response;
                 }
 
-
                 return response()->json(['status' => 0, 'message' => 'something went wrong', 'user_id' => $user_id, 'response' => $response], 400);
             }
 
@@ -274,28 +273,9 @@ class RegisterController extends Controller
     }
 
 
+
     public function GetUserAccountById(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required',
-            // 'ApiId' => 'required',
-            // 'ExpirationDateUtc' => 'required',
-            // //'token' => 'required',
-            // 'IsExpired' => 'required',
-            // 'TokenRejected' => 'required',
-        ]);
-        $fields = array('user_id');
-        $error_message = "";
-        if ($validator->fails()) {
-            foreach ($fields as $field) {
-                if (isset($validator->errors()->getMessages()[$field][0]) && !empty($validator->errors()->getMessages()[$field][0]) && empty($error_message)) {
-
-                    $error_message = __($validator->errors()->getMessages()[$field][0]);
-
-                    return response()->json(['status' => 0, 'message' => $error_message]);
-                }
-            }
-        }
         try {
             $tokenData = User::first();
             $check = $this->refreshToken($tokenData);
@@ -353,21 +333,20 @@ class RegisterController extends Controller
             $xml = simplexml_load_string($xml);
             $json = json_encode($xml);
             $responseArray = json_decode($json, true); // true to have an array, false for an object
-            if (isset($responseArray['sBody']['sFault']['faultstring']) && !empty($responseArray['sBody']['sFault']['faultstring'])) {
-
-                return response()->json(['status' => 0, 'message' => $responseArray['sBody']['sFault']['faultstring'], 'response' => $response], 400);
-            }
             $UserDetail = [];
+            if (isset($responseArray['sBody']['sFault']['faultstring']) && !empty($responseArray['sBody']['sFault']['faultstring'])) {
+                $UserDetail = [];
+                // return response()->json(['status' => 0, 'message' => $responseArray['sBody']['sFault']['faultstring'], 'response' => $response], 400);
+            }
 
             if (isset($responseArray['sBody']['GetUserAccountByIdResponse']['GetUserAccountByIdResult']) && !empty($responseArray['sBody']['GetUserAccountByIdResponse']['GetUserAccountByIdResult'])) {
 
                 $UserDetail = $responseArray['sBody']['GetUserAccountByIdResponse']['GetUserAccountByIdResult'];
             }
-
-            return response()->json(['status' => 1, 'message' => 'user detail', 'userDetail' => $UserDetail, 'response' => $response]);
+            return $UserDetail;
+            // return response()->json(['status' => 1, 'message' => 'user detail', 'userDetail' => $UserDetail, 'response' => $response]);
         } catch (\Exception $e) {
-            dd($e);
-            return response()->json(['status' => 0, 'message' => $e->getMessage()], 400);
+            return [];
         }
     }
 
@@ -1184,5 +1163,19 @@ class RegisterController extends Controller
             $UserDetail = $responseArray['sBody']['GetUserAccountByIdResponse']['GetUserAccountByIdResult'];
         }
         return $UserDetail;
+    }
+
+
+    public function getUserInfo(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+        ]);
+        if ($validator->fails()) {
+            $firstErrorMessage = $validator->errors()->first();
+            return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
+        }
+        $UserDetail =  $this->GetUserAccountById($request);
+        return response()->json(['status' => 1, 'message' => 'user detail', 'userDetail' => $UserDetail, 'response' => $UserDetail]);
     }
 }
