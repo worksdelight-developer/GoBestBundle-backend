@@ -100,6 +100,7 @@ class InventoryController extends Controller
             'quantity' => 'required',
             'productImage' => 'required',
             'productName' => 'required',
+            'price' => 'required',
         ]);
         $response = [];
         if ($validator->fails()) {
@@ -113,6 +114,7 @@ class InventoryController extends Controller
             'quantity' => $request->quantity,
             'productImage' => $request->productImage,
             'productName' => $request->productName,
+            'price' => $request->price,
         ];
         $Inventory = new Inventory;
         $existsRecord = Inventory::where([

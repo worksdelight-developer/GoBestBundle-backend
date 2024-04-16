@@ -488,7 +488,7 @@ class OrderController extends Controller
               <tem:criteria><log:AffiliateId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/><log:CategoryId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>' . $dateFilter . '' . $searchByUser . '</tem:criteria><tem:startIndex>' . $startIndex . '</tem:startIndex>
      
               <!--Optional:-->
-     
+              <log:OrderStatusId>e42f8c28-9078-47d6-89f8-032c9a6e1cce</log:OrderStatusId>
               <tem:pageSize>' . $pageSize . '</tem:pageSize>
      
            </tem:GetOrdersByCriteria>
