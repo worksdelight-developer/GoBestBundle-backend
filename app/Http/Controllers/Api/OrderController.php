@@ -162,8 +162,7 @@ class OrderController extends Controller
                 if (empty($checkOrder)) {
                     DB::table('order_history')->insert(['order_id' => $request->order_id, 'user_id' => $request->ApiId]);
                 }
-				 $AddLineitem[] = $this->AddLineitem($request->order_id, $value, $quantity);
-
+                $AddLineitem[] = $this->AddLineitem($request->order_id, $value, $quantity);
             }
         }
 
@@ -594,13 +593,17 @@ class OrderController extends Controller
         return  $orderInfo;
     }
 
-
     function suggestNextOrderInfo($orderData, $userInfo)
     {
+        // Assuming you have Carbon properly included at the beginning of your file
+        // use Carbon\Carbon;
+
         $reorderInterval = 24;
         $suggestedNextOrderInfo = [];
         $addedProducts = [];
-        $callClass = new ProductController;
+        // Ensure the necessity of the ProductController class
+        // $callClass = new ProductController;
+
         foreach ($orderData as $order) {
             foreach ($order['aLineItems'] as $aLineItems) {
                 $deliveryDate = Carbon::parse($order['aLastUpdated']);
@@ -608,22 +611,36 @@ class OrderController extends Controller
                 $productId = $aLineItems['aProductId'];
                 $quantity = $aLineItems['aQuantity'];
                 $orderId = $aLineItems['aOrderId'];
+
                 if (!isset($addedProducts[$productId])) {
-                    $nextOrderInfo = [
-                        'next_order_date' => $nextOrderDate->format('Y-m-d'),
-                        'product_id' => $productId,
-                        'product_info' => $callClass->productInfo($productId, $userInfo),
-                        'order_id' => $orderId,
-                        'quantity' => $quantity,
-                    ];
-                    $suggestedNextOrderInfo[] = $nextOrderInfo;
-                    $addedProducts[$productId] = true;
+                    // Check if the next_order_date is not a past date from the current date
+                    if ($nextOrderDate->isFuture() && $nextOrderDate->isAfter(Carbon::today())) {
+                        $nextOrderInfo = [
+                            'next_order_date' => $nextOrderDate->format('Y-m-d'),
+                            'product_id' => $productId,
+                            'product_info' => $aLineItems,
+                            'order_id' => $orderId,
+                            'quantity' => $quantity,
+                        ];
+
+                        // Check if the next order date is in the current or next month
+                        $currentMonth = Carbon::now()->format('m');
+                        $nextMonth = Carbon::now()->addMonth()->format('m');
+                        $orderMonth = $nextOrderDate->format('m');
+
+                        if ($orderMonth == $currentMonth || $orderMonth == $nextMonth) {
+                            $suggestedNextOrderInfo[] = $nextOrderInfo;
+                            $addedProducts[$productId] = true;
+                        }
+                    }
                 }
             }
         }
 
         return $suggestedNextOrderInfo;
     }
+
+
 
 
     public function predictNextOrder(Request $request)
@@ -640,8 +657,10 @@ class OrderController extends Controller
             'StartDate' => now()->firstOfMonth(),
             'EndDate' =>  now()->endOfMonth(),
         ];
-        $orders =  $this->GetOrdersByCriteria($user_id, $filters);
-        $suggestedNextOrderInfo = $this->suggestNextOrderInfo($orders, []);
+        $records = UserPurchaseHistory::where('user_id', $request->user_id)->orderby('id', 'desc')->with('aBillingAddress', 'aShippingAddress', 'aLineItems')->get();
+
+        // $orders =  $this->GetOrdersByCriteria($user_id, $filters);
+        $suggestedNextOrderInfo = $this->suggestNextOrderInfo($records, []);
 
         return response()->json(['status' => 1, 'message' => 'predictNextOrder fetched', 'response' => $suggestedNextOrderInfo]);
     }

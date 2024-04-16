@@ -117,9 +117,9 @@ class InventoryController extends Controller
         $Inventory = new Inventory;
         $existsRecord = Inventory::where([
             'user_id' => $request->user_id,
-           // 'order_id' => $request->order_id,
+            // 'order_id' => $request->order_id,
             'product_id' => $request->product_id,
-   
+
         ])->first();
 
         if (isset($existsRecord->user_id)) {

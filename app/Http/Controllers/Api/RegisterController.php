@@ -278,13 +278,13 @@ class RegisterController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'user_id' => 'required',
-            'ApiId' => 'required',
-            'ExpirationDateUtc' => 'required',
-            //'token' => 'required',
-            'IsExpired' => 'required',
-            'TokenRejected' => 'required',
+            // 'ApiId' => 'required',
+            // 'ExpirationDateUtc' => 'required',
+            // //'token' => 'required',
+            // 'IsExpired' => 'required',
+            // 'TokenRejected' => 'required',
         ]);
-        $fields = array('user_id', 'ApiId', 'ExpirationDateUtc', 'token', 'IsExpired', 'TokenRejected');
+        $fields = array('user_id');
         $error_message = "";
         if ($validator->fails()) {
             foreach ($fields as $field) {
@@ -366,7 +366,7 @@ class RegisterController extends Controller
 
             return response()->json(['status' => 1, 'message' => 'user detail', 'userDetail' => $UserDetail, 'response' => $response]);
         } catch (\Exception $e) {
-
+            dd($e);
             return response()->json(['status' => 0, 'message' => $e->getMessage()], 400);
         }
     }
