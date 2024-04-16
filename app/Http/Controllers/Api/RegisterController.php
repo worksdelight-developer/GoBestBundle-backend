@@ -477,6 +477,127 @@ class RegisterController extends Controller
         }
     }
 
+
+    public function refreshTokenV1($data)
+    {
+        $refreshToken =  '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+        <soapenv:Header/>
+        <soapenv:Body>
+            <tem:IsTokenValid>
+                <!--Optional:-->
+                <tem:token>
+                    <!--Optional:-->
+                    <log:ApiId>' . $data->ApiId . '</log:ApiId>
+                     <!--Optional:-->
+                     <log:ExpirationDateUtc>' . $data->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                     <!--Optional:-->
+                     <log:Id>' . $data->token . '</log:Id>
+                     <!--Optional:-->
+                     <log:IsExpired>' . $data->IsExpired . '</log:IsExpired>
+                     <!--Optional:-->
+                     <log:TokenRejected>' . $data->TokenRejected . '</log:TokenRejected>
+                </tem:token>
+            </tem:IsTokenValid>
+        </soapenv:Body>
+        </soapenv:Envelope>';
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $refreshToken,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: http://tempuri.org/IAuthenticationService/IsTokenValid'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        if (curl_errno($curl)) {
+            $response = curl_error($curl);
+
+            return response()->json(['status' => 0, 'message' => 'crul error', 'response' => $response], 400);
+        }
+        curl_close($curl);
+
+        $xml = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
+        $xml = simplexml_load_string($xml);
+        $json = json_encode($xml);
+        $responseArray = json_decode($json, true);
+        // dd($responseArray);
+        if (isset($responseArray['sBody']['IsTokenValidResponse']['IsTokenValidResult']) && !empty($responseArray['sBody']['IsTokenValidResponse']['IsTokenValidResult'])) {
+            $response = $responseArray['sBody']['IsTokenValidResponse']['IsTokenValidResult'];
+            if ($response == "true") {
+                $tokenData = User::where('ApiId', $data->ApiId)->first();
+            } else {
+
+                $login  = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+                <soapenv:Header/>
+                <soapenv:Body>
+                   <tem:Login>
+                      <!--Optional:-->
+                      <tem:username>webservice</tem:username>
+                      <!--Optional:-->
+                      <tem:password>au2B1O9Evr1L)</tem:password>
+                   </tem:Login>
+                </soapenv:Body>
+                </soapenv:Envelope>';
+
+                $curl1 = curl_init();
+
+                curl_setopt_array($curl1, array(
+                    CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'POST',
+                    CURLOPT_POSTFIELDS => $login,
+                    CURLOPT_HTTPHEADER => array(
+                        'Content-Type: text/xml; charset=utf-8',
+                        'SOAPAction: http://tempuri.org/IAuthenticationService/Login'
+                    ),
+                ));
+
+                $response = curl_exec($curl1);
+                if (curl_errno($curl1)) {
+                    $response = curl_error($curl1);
+
+                    return response()->json(['status' => 0, 'message' => 'crul error', 'response' => $response], 400);
+                }
+                curl_close($curl1);
+
+                $xml = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
+                $xml = simplexml_load_string($xml);
+                $json = json_encode($xml);
+                $responseArray = json_decode($json, true);
+
+                if (isset($responseArray['sBody']['LoginResponse']['LoginResult']) && !empty($responseArray['sBody']['LoginResponse']['LoginResult'])) {
+
+                    $response = $responseArray['sBody']['LoginResponse']['LoginResult'];
+                    $tokenData = User::where('ApiId',  $data->ApiId)->first();
+                    // $tokenData->ApiId = $responseArray['sBody']['LoginResponse']['LoginResult']['aApiId'];
+                    $tokenData->token = $responseArray['sBody']['LoginResponse']['LoginResult']['aId'];
+                    $tokenData->ExpirationDateUtc = $responseArray['sBody']['LoginResponse']['LoginResult']['aExpirationDateUtc'];
+                    $tokenData->IsExpired = $responseArray['sBody']['LoginResponse']['LoginResult']['aIsExpired'];
+                    $tokenData->TokenRejected = $responseArray['sBody']['LoginResponse']['LoginResult']['aTokenRejected'];
+                    $tokenData->update();
+                }
+            }
+
+            return $tokenData;
+        }
+    }
+
     public function login(Request $request)
     {
 
@@ -586,7 +707,9 @@ class RegisterController extends Controller
             $tokenData->TokenRejected = $responseArray['sBody']['LoginResponse']['LoginResult']['aTokenRejected'];
             $tokenData->user = ['id' => $userInfoFrom['aId'], 'name' => $User->name];
             $tokenData->order_id = DB::table('order_and_product')->where('UID', $User->UID)->first();
-
+            $request['user_id'] =  $tokenData->ApiId;
+            $userInfo = $this->GetUserAccountById($request);
+            $tokenData->aAccountRole = @$userInfo['aAccountRole'];
             return response()->json(['status' => 1, 'message' => 'user login sucessfully', 'data' => $tokenData, 'response' => $response]);
             // }
         } else {

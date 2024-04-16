@@ -650,7 +650,6 @@ class OrderController extends Controller
 
 
 
-
     public function predictNextOrder(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -721,9 +720,11 @@ class OrderController extends Controller
                 return response()->json(['status' => false, 'message' => __($firstErrorMessage)]);
             }
 
-            $tokenData = User::first();
+            $tokenData = User::where('UID', '01HV60F7V1EN6DFY4R7PG351SK')->first();
+            // dd($tokenData);
             $refreshtoken   = new RegisterController();
-            $check = $refreshtoken->refreshToken($tokenData);
+            $check = $refreshtoken->refreshTokenV1($tokenData);
+            // dd($check);
             // Construct SOAP envelope
             $soapRequest = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
          <soapenv:Header/>
@@ -774,6 +775,8 @@ class OrderController extends Controller
                     'SOAPAction: http://tempuri.org/IOrdersService/UpdateOrder'
                 ),
             ));
+
+
             // Execute the cURL request
             $response = curl_exec($curl);
 

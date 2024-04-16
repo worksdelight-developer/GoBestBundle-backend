@@ -68,4 +68,5 @@ Route::get('getPurchaseHistoryV2', [OrderController::class, 'getPurchaseHistoryV
 Route::get('getOrderDetail', [OrderController::class, 'getOrderDetail']);
 Route::get('getAllOrders', [OrderController::class, 'getAllOrders']);
 Route::get('getOrderStatuses', [OrderController::class, 'getOrderStatuses']);
+Route::post('updateOrder', [OrderController::class, 'updateOrder']);
 Route::post('scanOut', [InventoryController::class, 'scanOut']);
