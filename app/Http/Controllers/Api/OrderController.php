@@ -423,6 +423,7 @@ class OrderController extends Controller
         $startIndex = 0;
         $pageSize = 50;
         $dateFilter = '';
+        $orderbyStatus = '';
         if (isset($filters['StartDate']) && isset($filters['EndDate'])) {
             $startDate = Carbon::parse($filters['StartDate']);
             $endDate = Carbon::parse($filters['EndDate']);
@@ -436,11 +437,17 @@ class OrderController extends Controller
             $pageSize =   $filters['pageSize'];
         }
 
-
         if ($user_id == 0) {
             $searchByUser = '';
             $startIndex =  $filters['startIndex'];
             $pageSize =   $filters['pageSize'];
+        }
+        if (isset($filters['orderbyStatus']) && $filters['orderbyStatus'] == 'pending') {
+            $orderbyStatus =  '<log:OrderStatusId>e42f8c28-9078-47d6-89f8-032c9a6e1cce</log:OrderStatusId>';
+        }
+
+        if (isset($filters['orderbyStatus']) && $filters['orderbyStatus'] == 'approved') {
+            $orderbyStatus =  '<log:OrderStatusId>d5414625-bfb3-4884-8015-f2fcb8296dc0</log:OrderStatusId>';
         }
 
         $tokenData = User::first();
@@ -485,10 +492,10 @@ class OrderController extends Controller
      
               <!--Optional:-->
      
-              <tem:criteria><log:AffiliateId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/><log:CategoryId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>' . $dateFilter . '' . $searchByUser . '</tem:criteria><tem:startIndex>' . $startIndex . '</tem:startIndex>
+              <tem:criteria><log:AffiliateId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/><log:CategoryId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>' . $dateFilter . '' . $searchByUser . '' . $orderbyStatus . '</tem:criteria><tem:startIndex>' . $startIndex . '</tem:startIndex>
      
               <!--Optional:-->
-              <log:OrderStatusId>e42f8c28-9078-47d6-89f8-032c9a6e1cce</log:OrderStatusId>
+              
               <tem:pageSize>' . $pageSize . '</tem:pageSize>
      
            </tem:GetOrdersByCriteria>
@@ -691,6 +698,9 @@ class OrderController extends Controller
             'user_id' => 'required',
             'startIndex' => 'required',
             'pageSize' => 'required',
+            'startDate' => 'required',
+            'endDate' => 'required',
+            'orderbyStatus' => 'required',
         ]);
         if ($validator->fails()) {
             $firstErrorMessage = $validator->errors()->first();
@@ -701,7 +711,15 @@ class OrderController extends Controller
         if (isset($check['aAccountRole']) && $check['aAccountRole'] != 'Admin') {
             return response()->json(['status' => false, 'message' => __('Only For Admin..')]);
         }
-        $orders = $this->GetOrdersByCriteria(0, ['startIndex' => $request->startIndex, 'pageSize' => $request->pageSize]);
+
+        $filters = [
+            'startIndex' => $request->startIndex,
+            'pageSize' => $request->pageSize,
+            'StartDate' => $request->startDate,
+            'EndDate' => $request->endDate,
+            'orderbyStatus' => $request->orderbyStatus
+        ];
+        $orders = $this->GetOrdersByCriteria(0, $filters);
         return response()->json(['status' => true, 'message' => 'Record Fetched', 'result' => $orders]);
     }
 
@@ -760,6 +778,7 @@ class OrderController extends Controller
             $curl = curl_init();
 
             // Configure cURL options
+            dd($soapRequest);
             curl_setopt_array($curl, array(
                 CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc', // Update with the actual URL
                 CURLOPT_RETURNTRANSFER => true,
