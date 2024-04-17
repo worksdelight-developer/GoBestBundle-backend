@@ -720,7 +720,7 @@ class OrderController extends Controller
             'orderbyStatus' => $request->orderbyStatus
         ];
         $orders = $this->GetOrdersByCriteria(0, $filters);
-        return response()->json(['status' => 1, 'message' => 'Record Fetched', 'result' => $orders]);
+        return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $orders]);
     }
 
 
