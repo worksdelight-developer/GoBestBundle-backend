@@ -704,12 +704,12 @@ class OrderController extends Controller
         ]);
         if ($validator->fails()) {
             $firstErrorMessage = $validator->errors()->first();
-            return response()->json(['status' => false, 'message' => __($firstErrorMessage)]);
+            return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
         $RegisterClass  = new RegisterController();
         $check = $RegisterClass->GetUserAccountById($request);
         if (isset($check['aAccountRole']) && $check['aAccountRole'] != 'Admin') {
-            return response()->json(['status' => false, 'message' => __('Only For Admin..')]);
+            return response()->json(['status' => 0, 'message' => __('Only For Admin..')]);
         }
 
         $filters = [
@@ -720,7 +720,7 @@ class OrderController extends Controller
             'orderbyStatus' => $request->orderbyStatus
         ];
         $orders = $this->GetOrdersByCriteria(0, $filters);
-        return response()->json(['status' => true, 'message' => 'Record Fetched', 'result' => $orders]);
+        return response()->json(['status' => 1, 'message' => 'Record Fetched', 'result' => $orders]);
     }
 
 
@@ -735,7 +735,7 @@ class OrderController extends Controller
             ]);
             if ($validator->fails()) {
                 $firstErrorMessage = $validator->errors()->first();
-                return response()->json(['status' => false, 'message' => __($firstErrorMessage)]);
+                return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
             }
 
             $tokenData = User::where('UID', '01HV60F7V1EN6DFY4R7PG351SK')->first();
@@ -875,6 +875,6 @@ class OrderController extends Controller
         $jsonResponse = json_encode($xmlResponse);
         $responseArray = json_decode($jsonResponse, true);
         $statues = $responseArray['sBody']['GetOrderStatusesResponse']['GetOrderStatusesResult']['aOrderStatus'];
-        return response()->json(['status' => true, 'message' => 'Record Fetched', 'response' => $statues]);
+        return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $statues]);
     }
 }

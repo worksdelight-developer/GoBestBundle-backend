@@ -15,11 +15,11 @@ class AutomaticOrderController extends Controller
     public function orderPlace250(Request $request)
     {
 
-        $users = User::select('UID')->get();
+        $users = User::get();
         foreach ($users  as $user) {
-            $userCart = DB::table('cart')->where('user_email', $user->email)->get();
-            if (count($userCart) != 0) {
-                dd($userCart);
+            $products = DB::table('cart')->where('user_email', $user->name)->get();
+            if (count($products) != 0) {
+                dd($products);
             }
         }
         // dd($user, 'inventory');
