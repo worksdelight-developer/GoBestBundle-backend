@@ -422,14 +422,16 @@ class OrderController extends Controller
 
         $startIndex = 0;
         $pageSize = 50;
-        $dateFilter = '';
         $orderbyStatus = '';
+        $StartDate = '';
+        $EndDate = '';
         if (isset($filters['StartDate']) && isset($filters['EndDate'])) {
             $startDate = Carbon::parse($filters['StartDate']);
             $endDate = Carbon::parse($filters['EndDate']);
             $formattedFirstDay = $startDate->format('Y-m-d\TH:i:s.uP');
             $formattedLastDay = $endDate->format('Y-m-d\TH:i:s.uP');
-            $dateFilter = '<log:EndDate>' . $formattedLastDay . '</log:EndDate><log:StartDate>' . $formattedFirstDay . '</log:StartDate>';
+            $EndDate = '<log:EndDate>' . $formattedLastDay . '</log:EndDate>';
+            $StartDate = '<log:StartDate>' . $formattedFirstDay . '</log:StartDate>';
         }
 
         if (isset($filters['startIndex']) && isset($filters['pageSize'])) {
@@ -443,7 +445,8 @@ class OrderController extends Controller
             $pageSize =   $filters['pageSize'];
         }
         if (isset($filters['orderbyStatus']) && $filters['orderbyStatus'] == 'pending') {
-            $orderbyStatus =  '<log:OrderStatusId>e42f8c28-9078-47d6-89f8-032c9a6e1cce</log:OrderStatusId>';
+            $orderbyStatus =  '<log:OrderStatusId>150C6299-B3CD-42da-907C-A380FDA03A93</log:OrderStatusId>';
+            // dd($orderbyStatus);
         }
 
         if (isset($filters['orderbyStatus']) && $filters['orderbyStatus'] == 'approved') {
@@ -454,55 +457,32 @@ class OrderController extends Controller
         $refreshtoken   = new RegisterController();
         $check = $refreshtoken->refreshToken($tokenData);
 
-        $soapRequest = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain" xmlns:arr="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
 
-        <soapenv:Header/>
-     
-        <soapenv:Body>
-     
-           <tem:GetOrdersByCriteria>
-     
-              <!--Optional:-->
-     
-              <tem:token>
-     
-                 <!--Optional:-->
-     
-                 <log:ApiId>' . $check->ApiId . '</log:ApiId>
-     
-                 <!--Optional:-->
-     
-                 <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
-     
-                 <!--Optional:-->
-     
-                 <log:Id>' . $check->token . '</log:Id>
-     
-                 <!--Optional:-->
-     
-                 <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
-     
-                 <!--Optional:-->
-     
-                 <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
-     
-              </tem:token>
-     
-              <!--Optional:-->
-     
-              <!--Optional:-->
-     
-              <tem:criteria><log:AffiliateId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/><log:CategoryId xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>' . $dateFilter . '' . $searchByUser . '' . $orderbyStatus . '</tem:criteria><tem:startIndex>' . $startIndex . '</tem:startIndex>
-     
-              <!--Optional:-->
-              
-              <tem:pageSize>' . $pageSize . '</tem:pageSize>
-     
-           </tem:GetOrdersByCriteria>
-     
-        </soapenv:Body>
-     
-     </soapenv:Envelope>';
+
+        $soapRequest = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain" xmlns:arr="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <tem:GetOrdersByCriteria>
+         <tem:token>
+            <log:ApiId>' . $check->ApiId . '</log:ApiId>
+            <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+            <log:Id>' . $check->token . '</log:Id>
+            <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+            <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+         </tem:token>
+         <tem:criteria>
+            ' . $orderbyStatus . '
+            ' . $StartDate . '
+            ' . $EndDate . '
+            ' . $searchByUser . '
+         </tem:criteria>
+         <tem:startIndex>' . $startIndex . '</tem:startIndex>
+         <tem:pageSize>' . $pageSize . '</tem:pageSize>
+      </tem:GetOrdersByCriteria>
+   </soapenv:Body>
+</soapenv:Envelope>';
+
+
 
 
 
@@ -544,6 +524,7 @@ class OrderController extends Controller
         $jsonResponse = json_encode($xmlResponse);
         $responseArray = json_decode($jsonResponse, true);
         $orders = [];
+        // dd($responseArray);
         if (isset($responseArray['sBody']['GetOrdersByCriteriaResponse']['GetOrdersByCriteriaResult']['aList']['aOrder'])) {
             $ordersFromApi = $responseArray['sBody']['GetOrdersByCriteriaResponse']['GetOrdersByCriteriaResult']['aList']['aOrder'];
             // dd(gettype($ordersFromApi[0]));
@@ -715,8 +696,8 @@ class OrderController extends Controller
         $filters = [
             'startIndex' => $request->startIndex,
             'pageSize' => $request->pageSize,
-            'StartDate' => $request->startDate,
-            'EndDate' => $request->endDate,
+            // 'StartDate' => $request->startDate,
+            // 'EndDate' => $request->endDate,
             'orderbyStatus' => $request->orderbyStatus
         ];
         $orders = $this->GetOrdersByCriteria(0, $filters);

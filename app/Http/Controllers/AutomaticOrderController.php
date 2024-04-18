@@ -15,20 +15,19 @@ class AutomaticOrderController extends Controller
     public function orderPlace250(Request $request)
     {
 
-        $users = User::with('cart')->get();
-        dd($users);
-        // foreach ($users  as $user) {
-        //     $products = DB::table('cart')->where('user_email', $user->name)->get();
-        //     if (count($products) != 0) {
-        //         $this->placeOrder($products);
-        //     }
-        // }
-        // dd($user, 'inventory');
-    }
+        $userCartproducts = User::has('cart')->with('cart')->get();
 
-    public function placeOrder($products)
+        foreach ($userCartproducts as $userCart) {
+            $this->placeOrder($userCart->cart, $userCart);
+        }
+    }
+    public function placeOrder($produts, $user)
     {
-        foreach ($products as $product) {
+        // dd($produts, $user);
+        foreach ($produts as $product) {
+            // dd($product);
+
+            $
         }
     }
 }

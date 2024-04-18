@@ -1467,7 +1467,7 @@ class ProductController extends Controller
         $xml = simplexml_load_string($xml);
         $json = json_encode($xml);
         $responseArrays = json_decode($json, true);
-
+        // dd($responseArrays);
         if (isset($responseArrays['sBody']) && !empty($responseArrays['sBody'])) {
             $products = [];
 
@@ -1480,11 +1480,11 @@ class ProductController extends Controller
                             // dd('ss');
                             $pData = [
                                 'productIds' => $product['aProductId'],
-                                "ApiId" => $request->ApiId,
-                                "ExpirationDateUtc" => $request->ExpirationDateUtc,
+                                "ApiId" => $check->ApiId,
+                                "ExpirationDateUtc" => $check->ExpirationDateUtc,
                                 "token" => $check->token,
-                                "IsExpired" => $request->IsExpired,
-                                "TokenRejected" => $request->TokenRejected,
+                                "IsExpired" => $check->IsExpired,
+                                "TokenRejected" => $check->TokenRejected,
                             ];
                             $product['productDetails'] = $this->getProductDetailsByID($pData);
                             $product['codeDe'] = 'if';
@@ -1494,11 +1494,11 @@ class ProductController extends Controller
                     } else {
                         $pData = [
                             'productIds' => $aLineItem['aProductId'],
-                            "ApiId" => $request->ApiId,
-                            "ExpirationDateUtc" => $request->ExpirationDateUtc,
+                            "ApiId" => $check->ApiId,
+                            "ExpirationDateUtc" => $check->ExpirationDateUtc,
                             "token" => $check->token,
-                            "IsExpired" => $request->IsExpired,
-                            "TokenRejected" => $request->TokenRejected,
+                            "IsExpired" => $check->IsExpired,
+                            "TokenRejected" => $check->TokenRejected,
                         ];
                         $aLineItem['productDetails'] = $this->getProductDetailsByID($pData);
                         $aLineItem['codeDe'] = 'else';
