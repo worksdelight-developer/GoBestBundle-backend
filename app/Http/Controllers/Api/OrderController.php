@@ -688,7 +688,8 @@ class OrderController extends Controller
         }
         $RegisterClass  = new RegisterController();
         $check = $RegisterClass->GetUserAccountById($request);
-        if (isset($check['aAccountRole']) && $check['aAccountRole'] != 'Admin' || $check['aAccountRole'] != 'Manager') {
+        // dd($check, $check['aAccountRole']);
+        if ($check['aAccountRole'] == 'Purchaser' ||  $check['aAccountRole'] == 'User') {
             return response()->json(['status' => 0, 'message' => __('Only For Admin and Manager..')]);
         }
 
