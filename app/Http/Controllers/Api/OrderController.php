@@ -111,7 +111,6 @@ class OrderController extends Controller
 
     public function orderPlacedV1(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'user_id' => 'required',
             'order_id' => 'required',
@@ -142,19 +141,6 @@ class OrderController extends Controller
 
         foreach ($products as $key => $value) {
             $quantity =  $products_quantity[$key];
-            // $OrderProductV1 = new OrderProductV1;
-            // $save = [
-            //     'user_id' => $request->user_id,
-            //     'order_id' => $request->order_id,
-            //     'product_id' => $value,
-            //     'quantity' => $quantity
-            // ];
-            // // $exists = OrderProductV1::where('order_id', $request->order_id)->where('user_id', $request->user_id)->first();
-            // // if (isset($exists->id)) {
-            // //     $OrderProductV1 =  $exists;
-            // // }
-            // $OrderProductV1->fill($save);
-            // $OrderProductV1->save();
             if (count($products) > 1 && $key > 0) {
                 DB::table('order_and_product')->where(['order_id' => $request->order_id, 'UID' => $request->ApiId])->update(['status' => 'order']);
                 DB::table('cart')->where(['product_id' => $value, 'user_email' => $request->user_email])->delete();
@@ -165,26 +151,44 @@ class OrderController extends Controller
                 $AddLineitem[] = $this->AddLineitem($request->order_id, $value, $quantity);
             }
         }
-
-        // $OrderV1 = new OrderV1;
-        // $exists = OrderV1::where([
-        //     'user_id' => $request->user_id,
-        //     'order_id' => $request->order_id
-        // ])->first();
-        // if (isset($exists->id)) {
-        //     $OrderV1 =  $exists;
-        // }
-
-        // $save = [
-        //     'user_id' => $request->user_id,
-        //     'order_id' => $request->order_id
-        // ];
-        // $OrderV1->fill($save);
-        // $OrderV1->save();
-
-        //$purchaseHistory = $this->getPurchaseHistory($request);
-
         return response()->json(['status' => 1, 'message' => 'order Placed ', 'result' => $request->all(), 'AddLineitem' => $AddLineitem]);
+    }
+
+
+    public function orderPlacedV2($user_id, $order_id, $products, $products_quantity, $ApiId, $user_email)
+    {
+
+        $AddLineitem = [];
+
+        if (gettype($products) !== 'array') {
+            return response()->json(['status' => 0, 'message' =>  'products is not an array']);
+        }
+        if (gettype($products_quantity) !== 'array') {
+            return response()->json(['status' => 0, 'message' =>  'products_quantity is not an array']);
+        }
+
+        if (count($products_quantity) !== count($products)) {
+            return response()->json(['status' => 0, 'message' =>  ' products and products_quantity s lenght not matched']);
+        }
+        // dd($products, $products_quantity);
+        foreach ($products as $key => $value) {
+            $quantity =  $products_quantity[$key];
+            if (count($products) > 1 && $key > 0) {
+                // dd($quantity, $value);
+                DB::table('order_and_product')->where(['order_id' => $order_id, 'UID' => $ApiId])->update(['status' => 'order']);
+                DB::table('cart')->where(['product_id' => $value, 'user_email' => $user_email])->delete();
+                $checkOrder = DB::table('order_history')->where(['order_id' => $order_id, 'user_id' => $ApiId])->first();
+                if (empty($checkOrder)) {
+                    DB::table('order_history')->insert(['order_id' => $order_id, 'user_id' => $ApiId]);
+                }
+                // dd($value, $quantity);
+                $AddLineitem[] = $this->AddLineitem($order_id, $value, $quantity);
+            }
+        }
+        return [
+            'AddLineitem' => $AddLineitem,
+            'order_id' => $order_id
+        ];
     }
 
 
@@ -481,11 +485,6 @@ class OrderController extends Controller
       </tem:GetOrdersByCriteria>
    </soapenv:Body>
 </soapenv:Envelope>';
-
-
-
-
-
 
 
         // Initialize cURL for the SOAP request

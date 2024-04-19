@@ -690,7 +690,7 @@ class RegisterController extends Controller
                 'password' => Hash::make($request->password),
             ];
             $tokenData1 = User::where('name', $request->userName)
-                ->orWhere('email', $request->userName)
+                ->orWhere('email', $userInfoFrom['aEmail'])
                 ->first();
             $User = new User;
             if (isset($tokenData1->name)) {

@@ -984,16 +984,9 @@ class ProductController extends Controller
 
             'ApiId' => 'required',
             'ExpirationDateUtc' => 'required',
-            // 'productIds' => 'required',
             'IsExpired' => 'required',
             'TokenRejected' => 'required',
-            // 'street' => 'required',
-            // 'code' => 'required',
-            // 'postalCode' => 'required',
-            // 'administrativeArea' => 'required',
-            // 'subadministrativeArea' => 'required',
-            // 'locality' => 'required',
-            // 'subLocality' => 'required',
+
 
         ]);
         if ($validator->fails()) {
@@ -1391,6 +1384,232 @@ class ProductController extends Controller
         }
     }
 
+
+    public function CreateNewUnplacedOrderV1($userInfo, $product_id, $quantity)
+    {
+        $return = [];
+        $code = '?';
+        $postalCode = '?';
+        $tokenData = User::first();
+        // $userInfo   = DB::table('users')->where('UID', $data->ApiId)->first();
+        $refreshtoken   = new RegisterController();
+        $check = $refreshtoken->refreshToken($tokenData);
+        $addCart = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+                <soapenv:Header/>
+                <soapenv:Body>
+                <tem:CreateNewUnplacedOrder>
+                <!--Optional:-->
+                <tem:token>
+                    <log:ApiId>' . $check->ApiId . '</log:ApiId>
+                    <!--Optional:-->
+                    <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                    <!--Optional:-->
+                    <log:Id>' . $check->token . '</log:Id>
+                    <!--Optional:-->
+                    <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+                    <!--Optional:-->
+                    <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+                </tem:token>
+                <!--Optional:-->
+                <tem:billingAddress>
+                <!--Optional:-->
+                <log:BackendUserId>?</log:BackendUserId>
+                <!--Optional:-->
+                <log:BranchCode>?</log:BranchCode>
+                <!--Optional:-->
+                <log:City>?</log:City>
+                <!--Optional:-->
+                <log:Company>?</log:Company>
+                <!--Optional:-->
+                <log:CountryCode>' . $code . '</log:CountryCode>
+                <!--Optional:-->
+                <log:DepartmentId>?</log:DepartmentId>
+                <!--Optional:-->
+                <log:DepartmentName>?</log:DepartmentName>
+                <!--Optional:-->
+                <log:Enabled>true</log:Enabled>
+                <!--Optional:-->
+                <log:Fax>?</log:Fax>
+                <!--Optional:-->
+                <log:FirstName>' . $userInfo->name . '</log:FirstName>
+                <!--Optional:-->
+                <log:Id>?</log:Id>
+                <!--Optional:-->
+                <log:LastName>?</log:LastName>
+                <!--Optional:-->
+                <log:Line1>?</log:Line1>
+                <!--Optional:-->
+                <log:Line2>?</log:Line2>
+                <!--Optional:-->
+                <log:Line3>?</log:Line3>
+                <!--Optional:-->
+                <log:MiddleInitial>?</log:MiddleInitial>
+                <!--Optional:-->
+                <log:NickName>' . $userInfo->name . '</log:NickName>
+                <!--Optional:-->
+                <log:Phone>?</log:Phone>
+                <!--Optional:-->
+                <log:PostalCode>' . $postalCode . '</log:PostalCode>
+                <!--Optional:-->
+                <log:RegionCode>?</log:RegionCode>
+                <!--Optional:-->
+                <log:RouteCode>?</log:RouteCode>
+                <!--Optional:-->
+                <log:ThirdPartyId>?</log:ThirdPartyId>
+                </tem:billingAddress>
+                <!--Optional:-->
+                <tem:shippingAddress>
+                <!--Optional:-->
+                <log:BackendUserId>?</log:BackendUserId>
+                <!--Optional:-->
+                <log:BranchCode>?</log:BranchCode>
+                <!--Optional:-->
+                <log:City>?</log:City>
+                <!--Optional:-->
+                <log:Company>?</log:Company>
+                <!--Optional:-->
+                <log:CountryCode>' . $code . '</log:CountryCode>
+                <!--Optional:-->
+                <log:DepartmentId>?</log:DepartmentId>
+                <!--Optional:-->
+                <log:DepartmentName>?</log:DepartmentName>
+                <!--Optional:-->
+                <log:Enabled>true</log:Enabled>
+                <!--Optional:-->
+                <log:Fax>?</log:Fax>
+                <!--Optional:-->
+                <log:FirstName>' . $userInfo->name . '</log:FirstName>
+                <!--Optional:-->
+                <log:Id>?</log:Id>
+                <!--Optional:-->
+                <log:LastName>' . $userInfo->name . '</log:LastName>
+                <!--Optional:-->
+                <log:Line1>?</log:Line1>
+                <!--Optional:-->
+                <log:Line2>?</log:Line2>
+                <!--Optional:-->
+                <log:Line3>?</log:Line3>
+                <!--Optional:-->
+                <log:MiddleInitial>?</log:MiddleInitial>
+                <!--Optional:-->
+                <log:NickName>' . $userInfo->name . '</log:NickName>
+                <!--Optional:-->
+                <log:Phone>?</log:Phone>
+                <!--Optional:-->
+                <log:PostalCode>' . $postalCode . '</log:PostalCode>
+                <!--Optional:-->
+                <log:RegionCode></log:RegionCode>
+                <!--Optional:-->
+                <log:RouteCode>?</log:RouteCode>
+                <!--Optional:-->
+                <log:ThirdPartyId>?</log:ThirdPartyId>
+                </tem:shippingAddress>
+                <!--Optional:-->
+                <tem:userId>' . $userInfo->ApiId . '</tem:userId>
+                <!--Optional:-->
+                <tem:userEmail>' . $userInfo->email . '</tem:userEmail>
+                <!--Optional:-->
+                <tem:timeoforder>2023-05-12T00:00:00.000+05:00</tem:timeoforder>
+                </tem:CreateNewUnplacedOrder>
+                </soapenv:Body>
+            </soapenv:Envelope>';
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $addCart,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: http://tempuri.org/IOrdersService/CreateNewUnplacedOrder'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        if (curl_errno($curl)) {
+            $response = curl_error($curl);
+
+            return  $response;
+            // return response()->json(['status' => 0, 'message' => 'crul error', 'response' => $response], 400);
+        }
+        curl_close($curl);
+
+        $xml = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
+        $xml = simplexml_load_string($xml);
+        $json = json_encode($xml);
+        $responseArray = json_decode($json, true);
+
+        if (isset($responseArray['sBody']['CreateNewUnplacedOrderResponse']['CreateNewUnplacedOrderResult']) && !empty($responseArray['sBody']['CreateNewUnplacedOrderResponse']['CreateNewUnplacedOrderResult'])) {
+            DB::table('order_and_product')->insert(['order_id' => $responseArray['sBody']['CreateNewUnplacedOrderResponse']['CreateNewUnplacedOrderResult'], 'UID' => $userInfo->ApiId, 'product_id' => $product_id]);
+            $addItem = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+                    <soapenv:Header/>
+                    <soapenv:Body>
+                    <tem:AddLineItemByProductId>
+                    <!--Optional:-->
+                    <tem:token>
+                    <log:ApiId>' . $check->ApiId . '</log:ApiId>
+                    <!--Optional:-->
+                    <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                    <!--Optional:-->
+                    <log:Id>' . $check->token . '</log:Id>
+                    <!--Optional:-->
+                    <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+                    <!--Optional:-->
+                    <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+                    </tem:token>
+                    <!--Optional:-->
+                    <tem:orderId>' . $responseArray['sBody']['CreateNewUnplacedOrderResponse']['CreateNewUnplacedOrderResult'] . '</tem:orderId>
+                    <!--Optional:-->
+                    <tem:productId>' . $product_id . '</tem:productId>
+                    <!--Optional:-->
+                    <tem:quantity>' . $quantity . '</tem:quantity>
+                    </tem:AddLineItemByProductId>
+                    </soapenv:Body>
+                </soapenv:Envelope>';
+
+            $curl1 = curl_init();
+
+            curl_setopt_array($curl1, array(
+                CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => $addItem,
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: text/xml; charset=utf-8',
+                    'SOAPAction: http://tempuri.org/IOrdersService/AddLineItemByProductId'
+                ),
+            ));
+
+            $response1 = curl_exec($curl1);
+            if (curl_errno($curl1)) {
+                $response1 = curl_error($curl1);
+                return response()->json(['status' => 0, 'message' => 'crul error', 'response' => $response1], 400);
+            }
+            curl_close($curl1);
+
+            $xml1 = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response1);
+            $xml1 = simplexml_load_string($xml1);
+            $json1 = json_encode($xml1);
+            $responseArray1 = json_decode($json1, true);
+            $return = ['order_id' => $responseArray['sBody']['CreateNewUnplacedOrderResponse']['CreateNewUnplacedOrderResult'], 'line_item_id' => $responseArray1['sBody']['AddLineItemByProductIdResponse']['AddLineItemByProductIdResult']];
+        }
+        return  $return;
+    }
+
+
     public function GetOrderById(Request $request)
     {
         $input = $request->all();
@@ -1407,9 +1626,7 @@ class ProductController extends Controller
         if ($validator->fails()) {
             foreach ($fields as $field) {
                 if (isset($validator->errors()->getMessages()[$field][0]) && !empty($validator->errors()->getMessages()[$field][0]) && empty($error_message)) {
-
                     $error_message = __($validator->errors()->getMessages()[$field][0]);
-
                     return response()->json(['status' => 0, 'message' => $error_message]);
                 }
             }
@@ -1522,7 +1739,6 @@ class ProductController extends Controller
     {
         $input = $request->all();
         $validator = Validator::make($request->all(), [
-
             'ApiId' => 'required',
             'ExpirationDateUtc' => 'required',
             'IsExpired' => 'required',
@@ -1654,6 +1870,10 @@ class ProductController extends Controller
     public function getProductDetailsByID($data)
     {
 
+
+        $tokenData = User::first();
+        $refreshtoken   =   new RegisterController();
+        $check = $refreshtoken->refreshToken($tokenData);
         $findProduct =  '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain" xmlns:arr="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
           <soapenv:Header/>
           <soapenv:Body>
@@ -1661,15 +1881,15 @@ class ProductController extends Controller
                 <!--Optional:-->
                 <tem:token>
                    <!--Optional:-->
-                   <log:ApiId>' . $data['ApiId'] . '</log:ApiId>
+                   <log:ApiId>' . $check->ApiId . '</log:ApiId>
                    <!--Optional:-->
-                   <log:ExpirationDateUtc>' . $data['ExpirationDateUtc'] . '</log:ExpirationDateUtc>
+                   <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
                    <!--Optional:-->
-                   <log:Id>' . $data['token'] . '</log:Id>
+                   <log:Id>' . $check->token . '</log:Id>
                    <!--Optional:-->
-                   <log:IsExpired>' . $data['IsExpired'] . '</log:IsExpired>
+                   <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
                    <!--Optional:-->
-                   <log:TokenRejected>' . $data['TokenRejected'] . '</log:TokenRejected>
+                   <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
                 </tem:token>
                 <!--Optional:-->
                 <tem:productIds>
@@ -1721,10 +1941,7 @@ class ProductController extends Controller
     public function RemoveLineitem(Request $request)
     {
         $all = $request->all();
-
-
         $validator = Validator::make($request->all(), [
-
             'ApiId' => 'required',
             'ExpirationDateUtc' => 'required',
             // 'productIds' => 'required',
@@ -1998,7 +2215,6 @@ class ProductController extends Controller
                 $orderDatas = json_decode($json, true);
                 $products = [];
 
-
                 if (!empty($orderDatas['sBody']['GetOrderByIdResponse']['GetOrderByIdResult'])) {
                     foreach ($orderDatas['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aLineItems'] as $key => $aLineItem) {
                         if (isset($aLineItem[0])) {
@@ -2222,6 +2438,156 @@ class ProductController extends Controller
         }
     }
 
+
+    public function OrderPlaceV1($request, $order_id, $product_id, $quantity, $amount)
+    {
+
+        $tokenData = User::first();
+        $refreshtoken   =   new RegisterController();
+        $check = $refreshtoken->refreshToken($tokenData);
+
+        //dd($check->token);
+        $today_date = Carbon::now()->format('Y-m-d\TH:i:s.uP');
+        $input = $request->all();
+        $orderCod = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+            <soapenv:Header/>
+            <soapenv:Body>
+            <tem:AddCodPayment>
+            <!--Optional:-->
+            <tem:token>
+            <log:ApiId>' . $request->ApiId . '</log:ApiId>
+            <!--Optional:-->
+            <log:ExpirationDateUtc>' . $request->ExpirationDateUtc . '</log:ExpirationDateUtc>
+            <!--Optional:-->
+            <log:Id>' . $check->token . '</log:Id>
+            <!--Optional:-->
+            <log:IsExpired>' . $request->IsExpired . '</log:IsExpired>
+            <!--Optional:-->
+            <log:TokenRejected>' . $request->TokenRejected . '</log:TokenRejected>
+            </tem:token>
+            <!--Optional:-->
+            <tem:orderId>' . $order_id . '</tem:orderId>
+            <!--Optional:-->
+            <tem:amountCharged>' . $amount . '</tem:amountCharged>
+            <!--Optional:-->
+            <tem:auditDate>' . $today_date . '</tem:auditDate>
+            </tem:AddCodPayment>
+            </soapenv:Body>
+            </soapenv:Envelope>';
+
+        $curl1 = curl_init();
+
+        curl_setopt_array($curl1, array(
+            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $orderCod,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: http://tempuri.org/IOrdersService/AddCodPayment'
+            ),
+        ));
+
+        $response1 = curl_exec($curl1);
+
+
+        if (curl_errno($curl1)) {
+            $response1 = curl_error($curl1);
+
+            return ['status' => 0, 'message' => 'crul error', 'response' => $response1];
+        }
+        curl_close($curl1);
+
+        $xml = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response1);
+        $xml = simplexml_load_string($xml);
+        $json = json_encode($xml);
+        $responseArray = json_decode($json, true);
+
+
+
+        $orderPlaced  = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+            <soapenv:Header/>
+            <soapenv:Body>
+            <tem:PlaceOrder>
+            <!--Optional:-->
+            <tem:token>
+            <log:ApiId>' . $request->ApiId . '</log:ApiId>
+            <!--Optional:-->
+            <log:ExpirationDateUtc>' . $request->ExpirationDateUtc . '</log:ExpirationDateUtc>
+            <!--Optional:-->
+            <log:Id>' . $check->token . '</log:Id>
+            <!--Optional:-->
+            <log:IsExpired>' . $request->IsExpired . '</log:IsExpired>
+            <!--Optional:-->
+            <log:TokenRejected>' . $request->TokenRejected . '</log:TokenRejected>
+            </tem:token>
+            <!--Optional:-->
+            <tem:orderId>' . $order_id . '</tem:orderId>
+            <!--Optional:-->
+            <tem:executeWorkflows>false</tem:executeWorkflows>
+            </tem:PlaceOrder>
+            </soapenv:Body>
+            </soapenv:Envelope>';
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $orderPlaced,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: http://tempuri.org/IOrdersService/PlaceOrder'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+
+        if (curl_errno($curl)) {
+            $response = curl_error($curl);
+
+            return ['status' => 0, 'message' => 'crul error', 'response' => $response];
+        }
+        curl_close($curl);
+
+
+        $xml = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
+        $xml = simplexml_load_string($xml);
+        $json = json_encode($xml);
+        $responseArray = json_decode($json, true);
+        // dd($responseArray);
+        $orderSave  = [
+            'order_id' => $order_id,
+            'product_id' => $product_id,
+            'user_id' => @$request->ApiId,
+            'quantity' => $quantity,
+            'created_at'  => Carbon::now(),
+        ];
+        DB::table('order_by_user')->insert($orderSave);
+        if (isset($responseArray['sBody']['PlaceOrderResponse']['PlaceOrderResult']) && !empty($responseArray['sBody']['PlaceOrderResponse']['PlaceOrderResult'])) {
+            DB::table('order_and_product')->where(['order_id' => $order_id, 'UID' => $request->ApiId])->update(['status' => 'order']);
+            DB::table('cart')->where(['user_email' => $request->email])->delete();
+            $checkOrder = DB::table('order_history')->where(['order_id' => $order_id, 'user_id' => $request->ApiId])->first();
+            if (empty($checkOrder)) {
+                DB::table('order_history')->insert(['order_id' => $order_id, 'user_id' => $request->ApiId]);
+            }
+            return ['status' => 1, 'message' => 'Order placed sucessfully', 'data' => $responseArray['sBody']['PlaceOrderResponse']['PlaceOrderResult']];
+        } else {
+            return ['status' => 0, 'message' => 'something went wrong', 'response' => $response1];
+        }
+    }
 
     public function RemoveOrder(Request $request)
     {
