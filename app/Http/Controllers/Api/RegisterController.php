@@ -705,7 +705,7 @@ class RegisterController extends Controller
             $tokenData->ExpirationDateUtc = $responseArray['sBody']['LoginResponse']['LoginResult']['aExpirationDateUtc'];
             $tokenData->IsExpired = $responseArray['sBody']['LoginResponse']['LoginResult']['aIsExpired'];
             $tokenData->TokenRejected = $responseArray['sBody']['LoginResponse']['LoginResult']['aTokenRejected'];
-            $tokenData->user = ['id' => $userInfoFrom['aId'], 'name' => $User->name];
+            $tokenData->user = ['id' => $userInfoFrom['aId'], 'name' => $User->name, 'email' => $User->email];
             $tokenData->order_id = DB::table('order_and_product')->where('UID', $User->UID)->first();
             $request['user_id'] =  $tokenData->ApiId;
             $userInfo = $this->GetUserAccountById($request);
