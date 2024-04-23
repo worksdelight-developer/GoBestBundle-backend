@@ -53,6 +53,7 @@ Route::post('UpdateLineItem', [ProductController::class, 'UpdateLineItem']);
 Route::get('getPurchaseHistory', [ProductController::class, 'getPurchaseHistory']);
 Route::post('forgetPassword', [RegisterController::class, 'forgetPassword']);
 Route::post('addToCartV1', [ProductController::class, 'addToCart']);
+Route::post('removefromCartv1', [ProductController::class, 'removefromCartv1']);
 Route::post('cartList', [ProductController::class, 'cartList']);
 Route::post('addToFavourite', [ProductController::class, 'addToFavourite']);
 Route::post('removeFavourite', [ProductController::class, 'removeFavourite']);

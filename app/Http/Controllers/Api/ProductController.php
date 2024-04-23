@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Cache;
 use App\Models\OrderHistory;
 use App\Models\Category;
-
+use App\Models\Cart;
 use Illuminate\Support\Facades\DB;
 use App\Models\FavouriteProduct;
 use Carbon\Carbon;
@@ -2852,6 +2852,25 @@ class ProductController extends Controller
 
         return response()->json(['status' => 1, 'message' => 'item added into cart', 'response' => $response]);
     }
+
+    public function removefromCartv1(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'id' => 'required',
+
+        ]);
+        $response = [];
+        if ($validator->fails()) {
+            $firstErrorMessage = $validator->errors()->first();
+            return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
+        }
+        $exist = Cart::where(['id' => $request->id])->delete();
+
+        return response()->json(['status' => 1, 'message' => 'item removed from cart successfully', 'response' => $exist]);
+    }
+
+
 
 
     public function cartList(Request $request)
