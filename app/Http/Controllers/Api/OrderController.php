@@ -361,7 +361,6 @@ class OrderController extends Controller
         $callClass = new ProductController;
         // foreach ($orders as $key => $value) {
         $orderInfoFromApi = $callClass->orderInfo($order->order_id);
-
         $aIsPlaced = @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aIsPlaced'];
         $aGrandTotal = @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aGrandTotal'];
         $aCartId = @$orderInfoFromApi['sBody']['GetOrderByIdResponse']['GetOrderByIdResult']['aCartId'];
