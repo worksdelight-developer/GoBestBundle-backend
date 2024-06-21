@@ -81,6 +81,8 @@ class ProductController extends Controller
         return $return;
     }
 
+
+
     public function orderInfo($order_id)
     {
         $tokenData = User::first();
@@ -879,36 +881,24 @@ class ProductController extends Controller
 
     public function GetCategoryProducts(Request $request)
     {
-        $input = $request->all();
         $validator = Validator::make($request->all(), [
-
-            'ApiId' => 'required',
-            'ExpirationDateUtc' => 'required',
+            // 'ApiId' => 'required',
+            // 'ExpirationDateUtc' => 'required',
             // 'productIds' => 'required',
-            'IsExpired' => 'required',
-            'TokenRejected' => 'required',
+            // 'IsExpired' => 'required',
+            // 'TokenRejected' => 'required',
+            'category_id' =>   'required',
             'startRowIndex' =>   'required',
             'maximumRows' =>   'required'
-
         ]);
-        $fields = array('ApiId', 'ExpirationDateUtc', 'IsExpired', 'TokenRejected');
-        $error_message = "";
+
         if ($validator->fails()) {
-            foreach ($fields as $field) {
-                if (isset($validator->errors()->getMessages()[$field][0]) && !empty($validator->errors()->getMessages()[$field][0]) && empty($error_message)) {
-
-                    $error_message = __($validator->errors()->getMessages()[$field][0]);
-
-                    return response()->json(['status' => 0, 'message' => $error_message]);
-                }
-            }
+            $firstErrorMessage = $validator->errors()->first();
+            return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
-
-
         $tokenData = User::first();
         $refreshtoken   =   new RegisterController();
         $check = $refreshtoken->refreshToken($tokenData);
-
         $GetRootCategories  = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
             <soapenv:Header/>
             <soapenv:Body>
@@ -954,11 +944,8 @@ class ProductController extends Controller
         ));
 
         $response = curl_exec($curl);
-
-
         if (curl_errno($curl)) {
             $response = curl_error($curl);
-
             return response()->json(['status' => 0, 'message' => 'crul error', 'response' => $response], 400);
         }
         curl_close($curl);
@@ -967,9 +954,7 @@ class ProductController extends Controller
         $xml = simplexml_load_string($xml);
         $json = json_encode($xml);
         $responseArray = json_decode($json, true);
-
         if (isset($responseArray['sBody']['GetCategoryProductsResponse']['GetCategoryProductsResult']['aList']['aProduct']) && !empty($responseArray['sBody']['GetCategoryProductsResponse']['GetCategoryProductsResult']['aList']['aProduct'])) {
-
             return response()->json(['status' => 1, 'message' => 'feature Product', 'Products' => $responseArray['sBody']['GetCategoryProductsResponse']['GetCategoryProductsResult']['aList']['aProduct']]);
         } else {
             return response()->json(['status' => 0, 'message' => 'something went wrong', 'response' => $response], 400);
@@ -979,15 +964,11 @@ class ProductController extends Controller
 
     public function CreateNewUnplacedOrder(Request $request)
     {
-        $input = $request->all();
         $validator = Validator::make($request->all(), [
-
             'ApiId' => 'required',
             'ExpirationDateUtc' => 'required',
             'IsExpired' => 'required',
             'TokenRejected' => 'required',
-
-
         ]);
         if ($validator->fails()) {
             $firstErrorMessage = $validator->errors()->first();
@@ -2952,5 +2933,84 @@ class ProductController extends Controller
         }
         $response = FavouriteProduct::where(['id' => $request->id])->delete();
         return response()->json(['status' => 1, 'message' => 'Favourite Product Removed', 'response' => $response]);
+    }
+
+
+
+    public function FindProductsBySkus(Request $request)
+    {
+        // Validation rules
+        $validator = Validator::make($request->all(), [
+            // 'skus' => 'required|array',
+            'skus' => 'string'
+        ]);
+
+        if ($validator->fails()) {
+            $firstErrorMessage = $validator->errors()->first();
+            return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
+        }
+
+        $tokenData = User::first();
+        $refreshtoken = new RegisterController();
+        $check = $refreshtoken->refreshToken($tokenData);
+
+        $skusXml = '<arr:string>' . $request->skus . '</arr:string>';
+        $soapRequestBody = '
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain" xmlns:arr="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <tem:FindProductsBySkus>
+                    <tem:token>
+                        <log:ApiId>' . $check->ApiId . '</log:ApiId>
+                        <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+                        <log:Id>' . $check->token . '</log:Id>
+                        <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+                        <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+                    </tem:token>
+                    <tem:skus>' . $skusXml . '</tem:skus>
+                </tem:FindProductsBySkus>
+            </soapenv:Body>
+        </soapenv:Envelope>';
+
+        // CURL setup and execution
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $soapRequestBody,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: http://tempuri.org/ICatalogService/FindProductsBySkus'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        if (curl_errno($curl)) {
+            $response = curl_error($curl);
+            return response()->json(['status' => 0, 'message' => 'curl error', 'response' => $response], 400);
+        }
+
+        curl_close($curl);
+
+        // Handle XML response
+        $xml = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
+        $xml = simplexml_load_string($xml);
+        $json = json_encode($xml);
+        $responseArray = json_decode($json, true);
+
+        // dd($responseArray);
+        if (isset($responseArray['sBody']['FindProductsBySkusResponse']['FindProductsBySkusResult']['aProduct']) && !empty($responseArray['sBody']['FindProductsBySkusResponse']['FindProductsBySkusResult']['aProduct'])) {
+            return response()->json(['status' => 1, 'message' => 'Products found', 'Products' => $responseArray['sBody']['FindProductsBySkusResponse']['FindProductsBySkusResult']['aProduct']]);
+        } else {
+            return response()->json(['status' => 0, 'message' => 'something went wrong', 'response' => $response], 400);
+        }
     }
 }
