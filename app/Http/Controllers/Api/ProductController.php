@@ -3008,7 +3008,7 @@ class ProductController extends Controller
 
         // dd($responseArray);
         if (isset($responseArray['sBody']['FindProductsBySkusResponse']['FindProductsBySkusResult']['aProduct']) && !empty($responseArray['sBody']['FindProductsBySkusResponse']['FindProductsBySkusResult']['aProduct'])) {
-            return response()->json(['status' => 1, 'message' => 'Product Info Fetched', 'Products' => $responseArray['sBody']['FindProductsBySkusResponse']['FindProductsBySkusResult']['aProduct']]);
+            return response()->json(['status' => 1, 'message' => 'product details', 'Products' => $responseArray['sBody']['FindProductsBySkusResponse']['FindProductsBySkusResult']['aProduct']]);
         } else {
             return response()->json(['status' => 0, 'message' => 'something went wrong', 'response' => $response], 400);
         }
