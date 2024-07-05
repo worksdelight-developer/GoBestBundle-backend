@@ -780,59 +780,142 @@ class ProductController extends Controller
         }
     }
 
+    // public function GetfeatureProduct(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+
+    //         // 'ApiId' => 'required',
+    //         // 'ExpirationDateUtc' => 'required',
+    //         // // 'productIds' => 'required',
+    //         // 'IsExpired' => 'required',
+    //         // 'TokenRejected' => 'required'
+
+    //     ]);
+    //     $fields = array('ApiId', 'ExpirationDateUtc', 'IsExpired', 'TokenRejected');
+    //     $error_message = "";
+    //     if ($validator->fails()) {
+    //         foreach ($fields as $field) {
+    //             if (isset($validator->errors()->getMessages()[$field][0]) && !empty($validator->errors()->getMessages()[$field][0]) && empty($error_message)) {
+
+    //                 $error_message = __($validator->errors()->getMessages()[$field][0]);
+
+    //                 return response()->json(['status' => 0, 'message' => $error_message]);
+    //             }
+    //         }
+    //     }
+
+
+    //     $tokenData = User::first();
+    //     $refreshtoken   =   new RegisterController();
+    //     $check = $refreshtoken->refreshToken($tokenData);
+    //     $GetRootCategories  = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
+    //                             <soapenv:Header/>
+    //                             <soapenv:Body>
+    //                             <tem:GetCategoryProducts>
+    //                                 <!--Optional:-->
+    //                                 <tem:token>
+    //                                 <log:ApiId>' . $check->ApiId . '</log:ApiId>
+    //                                 <!--Optional:-->
+    //                                 <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
+    //                                 <!--Optional:-->
+    //                                 <log:Id>' . $check->token . '</log:Id>
+    //                                 <!--Optional:-->
+    //                                 <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
+    //                                 <!--Optional:-->
+    //                                 <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
+    //                                 </tem:token>
+    //                                 <!--Optional:-->
+    //                                 <tem:categoryId>01HP2YQ6ZQ6Y5SH34XH3VG7XX6</tem:categoryId>
+    //                                 <!--Optional:-->
+    //                                 <tem:startRowIndex>0</tem:startRowIndex>
+    //                                 <!--Optional:-->
+    //                                 <tem:maximumRows>10</tem:maximumRows>
+    //                             </tem:GetCategoryProducts>
+    //                             </soapenv:Body>
+    //                         </soapenv:Envelope>';
+
+    //     $curl = curl_init();
+
+    //     curl_setopt_array($curl, array(
+    //         CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+    //         CURLOPT_RETURNTRANSFER => true,
+    //         CURLOPT_ENCODING => '',
+    //         CURLOPT_MAXREDIRS => 10,
+    //         CURLOPT_TIMEOUT => 0,
+    //         CURLOPT_FOLLOWLOCATION => true,
+    //         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    //         CURLOPT_CUSTOMREQUEST => 'POST',
+    //         CURLOPT_POSTFIELDS => $GetRootCategories,
+    //         CURLOPT_HTTPHEADER => array(
+    //             'Content-Type: text/xml; charset=utf-8',
+    //             'SOAPAction: http://tempuri.org/ICatalogService/GetCategoryProducts'
+    //         ),
+    //     ));
+
+    //     $response = curl_exec($curl);
+
+
+    //     if (curl_errno($curl)) {
+    //         $response = curl_error($curl);
+
+    //         return response()->json(['status' => 0, 'message' => 'crul error', 'response' => $response], 400);
+    //     }
+    //     curl_close($curl);
+
+    //     $xml = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
+    //     $xml = simplexml_load_string($xml);
+    //     $json = json_encode($xml);
+    //     $responseArray = json_decode($json, true);
+    //     if (isset($responseArray['sBody']['GetCategoryProductsResponse']['GetCategoryProductsResult']) && !empty($responseArray['sBody']['GetCategoryProductsResponse'])) {
+    //         $finalResults = [];
+    //         foreach ($responseArray['sBody']['GetCategoryProductsResponse']['GetCategoryProductsResult']['aList']['aProduct'] as $key => $product) {
+    //             if ($product["aStatus"] == "Active") {
+    //                 $finalResults[] = $product;
+    //             }
+    //         }
+    //         return response()->json(['status' => 1, 'message' => 'feature Product', 'Products' => $finalResults]);
+    //     } else {
+    //         return response()->json(['status' => 0, 'message' => 'something went wrong', 'response' => $response], 400);
+    //     }
+    // }
+
+
     public function GetfeatureProduct(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-
-            'ApiId' => 'required',
-            'ExpirationDateUtc' => 'required',
-            // 'productIds' => 'required',
-            'IsExpired' => 'required',
-            'TokenRejected' => 'required'
-
-        ]);
-        $fields = array('ApiId', 'ExpirationDateUtc', 'IsExpired', 'TokenRejected');
-        $error_message = "";
-        if ($validator->fails()) {
-            foreach ($fields as $field) {
-                if (isset($validator->errors()->getMessages()[$field][0]) && !empty($validator->errors()->getMessages()[$field][0]) && empty($error_message)) {
-
-                    $error_message = __($validator->errors()->getMessages()[$field][0]);
-
-                    return response()->json(['status' => 0, 'message' => $error_message]);
-                }
-            }
-        }
-
 
         $tokenData = User::first();
-        $refreshtoken   =   new RegisterController();
+        $refreshtoken = new RegisterController();
         $check = $refreshtoken->refreshToken($tokenData);
-        $GetRootCategories  = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
-                                <soapenv:Header/>
-                                <soapenv:Body>
-                                <tem:GetCategoryProducts>
-                                    <!--Optional:-->
-                                    <tem:token>
+        $skusXml = '<arr:string>GBBFOYWater</arr:string>
+                   <arr:string>GBBCPAED598</arr:string>
+                   <arr:string>GBBAAMC144</arr:string>
+                   <arr:string>MOR400WY</arr:string>
+                   <arr:string>GBBCPN123-90425</arr:string>
+                   <arr:string>GBB-SI-ICX9078-0565</arr:string>
+                   <arr:string>KCC47305</arr:string>
+                   <arr:string>MORM1000</arr:string>
+                   <arr:string>BWK6200</arr:string>
+                   <arr:string>GBBCPN88-90415</arr:string>
+                   <arr:string>BWK522</arr:string>
+                   <arr:string>GBBSTBKT4PK</arr:string>
+                    ';
+
+
+        $soapRequest = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain" xmlns:arr="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+                        <soapenv:Header/>
+                        <soapenv:Body>
+                            <tem:FindProductsBySkus>
+                                <tem:token>
                                     <log:ApiId>' . $check->ApiId . '</log:ApiId>
-                                    <!--Optional:-->
                                     <log:ExpirationDateUtc>' . $check->ExpirationDateUtc . '</log:ExpirationDateUtc>
-                                    <!--Optional:-->
                                     <log:Id>' . $check->token . '</log:Id>
-                                    <!--Optional:-->
                                     <log:IsExpired>' . $check->IsExpired . '</log:IsExpired>
-                                    <!--Optional:-->
                                     <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
-                                    </tem:token>
-                                    <!--Optional:-->
-                                    <tem:categoryId>01HP2YQ6ZQ6Y5SH34XH3VG7XX6</tem:categoryId>
-                                    <!--Optional:-->
-                                    <tem:startRowIndex>0</tem:startRowIndex>
-                                    <!--Optional:-->
-                                    <tem:maximumRows>10</tem:maximumRows>
-                                </tem:GetCategoryProducts>
-                                </soapenv:Body>
-                            </soapenv:Envelope>';
+                                </tem:token>
+                                <tem:skus>' . $skusXml . '</tem:skus>
+                            </tem:FindProductsBySkus>
+                        </soapenv:Body>
+                    </soapenv:Envelope>';
 
         $curl = curl_init();
 
@@ -845,20 +928,18 @@ class ProductController extends Controller
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => $GetRootCategories,
+            CURLOPT_POSTFIELDS => $soapRequest,
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: text/xml; charset=utf-8',
-                'SOAPAction: http://tempuri.org/ICatalogService/GetCategoryProducts'
+                'SOAPAction: http://tempuri.org/ICatalogService/FindProductsBySkus'
             ),
         ));
 
         $response = curl_exec($curl);
 
-
         if (curl_errno($curl)) {
             $response = curl_error($curl);
-
-            return response()->json(['status' => 0, 'message' => 'crul error', 'response' => $response], 400);
+            return response()->json(['status' => 0, 'message' => 'curl error', 'response' => $response], 400);
         }
         curl_close($curl);
 
@@ -866,18 +947,18 @@ class ProductController extends Controller
         $xml = simplexml_load_string($xml);
         $json = json_encode($xml);
         $responseArray = json_decode($json, true);
-        if (isset($responseArray['sBody']['GetCategoryProductsResponse']['GetCategoryProductsResult']) && !empty($responseArray['sBody']['GetCategoryProductsResponse'])) {
-            $finalResults = [];
-            foreach ($responseArray['sBody']['GetCategoryProductsResponse']['GetCategoryProductsResult']['aList']['aProduct'] as $key => $product) {
-                if ($product["aStatus"] == "Active") {
-                    $finalResults[] = $product;
-                }
-            }
-            return response()->json(['status' => 1, 'message' => 'feature Product', 'Products' => $finalResults]);
+
+
+        if (isset($responseArray['sBody']['FindProductsBySkusResponse']['FindProductsBySkusResult']) && !empty($responseArray['sBody']['FindProductsBySkusResponse'])) {
+            $finalResults = $responseArray['sBody']['FindProductsBySkusResponse']['FindProductsBySkusResult']['aProduct'];
+            return response()->json(['status' => 1, 'message' => 'Feature Product', 'Products' => $finalResults]);
         } else {
             return response()->json(['status' => 0, 'message' => 'something went wrong', 'response' => $response], 400);
         }
     }
+
+
+
 
     public function GetCategoryProducts(Request $request)
     {
