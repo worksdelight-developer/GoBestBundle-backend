@@ -72,3 +72,4 @@ Route::get('getOrderStatuses', [OrderController::class, 'getOrderStatuses']);
 Route::post('updateOrder', [OrderController::class, 'updateOrder']);
 Route::post('scanOut', [InventoryController::class, 'scanOut']);
 Route::post('FindProductsBySkus', [ProductController::class, 'FindProductsBySkus']);
+Route::post('removeAccount', [RegisterController::class, 'removeAccount']);

@@ -22,7 +22,7 @@ class RegisterController extends Controller
             'firstName' => 'required',
             'lastName' => 'required',
             'company' => 'required',
-            'email' => ['required', 'email'],
+            'email' => 'required|unique:users,email',
             'password' => 'required',
             'notification_token' => 'required',
             // 'ApiId' => 'required',
@@ -47,6 +47,12 @@ class RegisterController extends Controller
         }
 
         try {
+
+            $userStaus =  User::where('email', $request->email)->first();
+
+            if ($userStaus->status == 'inActive') {
+                return response()->json(['status' => 0, 'message' => 'Your account has been deactivated. Please contact support ']);
+            }
             $tokenData = User::first();
 
             $check = $this->refreshToken($tokenData);
@@ -235,7 +241,7 @@ class RegisterController extends Controller
                     'name' => $request->userName,
                     'email' => $request->email,
                     'UId' => $user_id,
-                    'ApiId' => $check->ApiId,
+                    'ApiId' => $user_id,
                     'IsExpired' => $check->IsExpired,
                     'token' => $check->token,
                     'ExpirationDateUtc' => $check->ExpirationDateUtc,
@@ -247,7 +253,7 @@ class RegisterController extends Controller
                 $userInfo->fill($store);
                 $userInfo->save();
 
-                return response()->json(['status' => 1, 'message' => 'user account created sucessfully', 'user_id' => $user_id, 'response' => $userInfo]);
+                return response()->json(['status' => 1, 'message' => 'user account created sucessfully', 'user_id' => $user_id, 'response' => $userInfo, 'check' => '1']);
             } else {
                 $user_id   = "";
             }
@@ -267,7 +273,7 @@ class RegisterController extends Controller
                 return response()->json(['status' => 0, 'message' => 'something went wrong', 'user_id' => $user_id, 'response' => $response], 400);
             }
 
-            return response()->json(['status' => 1, 'message' => 'user account created sucessfully', 'user_id' => $user_id, 'response' => $response]);
+            return response()->json(['status' => 1, 'message' => 'user account created sucessfully', 'user_id' => $user_id, 'response' => $response, 'check' => '2']);
         } catch (\Exception $e) {
             // dd($e);
             return response()->json(['status' => 0, 'message' => $e->getMessage()], 400);
@@ -624,6 +630,11 @@ class RegisterController extends Controller
                 }
             }
         }
+
+        $userStaus =  User::where('email', $request->userName)->first();
+        if ($userStaus->status == 'inActive') {
+            return response()->json(['status' => 0, 'message' => 'Your account has been deactivated. Please contact support ']);
+        }
         // $tokenData1 = User::where('name', $request->userName)->where('password', $request->password)->first();
 
         // if (empty($tokenData1)) {
@@ -670,9 +681,16 @@ class RegisterController extends Controller
         $json = json_encode($xml);
         $responseArray = json_decode($json, true);
 
+        dd($responseArray);
+
+        // $tokenData1 = User::where('name', $request->userName)
+        //     ->orWhere('email', $userInfoFrom['aEmail'])
+        //     ->first();
 
         if (isset($responseArray['sBody']['LoginResponse']['LoginResult']) && !empty($responseArray['sBody']['LoginResponse']['LoginResult'])) {
             if (empty($responseArray['sBody']['LoginResponse']['LoginResult']['aApiId'])) {
+
+                dd('jhh');
                 return response()->json(['status' => 0, 'message' => 'Incorrect email or password'], 400);
                 // return response()->json(['status' => 0, 'message' => 'There is some problem with your account plz contact super admin'], 400);
             }
@@ -716,6 +734,7 @@ class RegisterController extends Controller
             return response()->json(['status' => 1, 'message' => 'user login sucessfully', 'data' => $tokenData, 'response' => $response]);
             // }
         } else {
+
             return response()->json(['status' => 0, 'message' => 'Incorrect email or password'], 400);
         }
     }
@@ -840,8 +859,19 @@ class RegisterController extends Controller
 
         ]);
         $fields = array(
-            'userName', 'firstName', 'lastName', 'email', 'ApiId', 'ExpirationDateUtc', 'token',
-            'IsExpired', 'TokenRejected', 'CreationDate', 'LastLoginDate', 'LastUpdated', 'LockedUntil'
+            'userName',
+            'firstName',
+            'lastName',
+            'email',
+            'ApiId',
+            'ExpirationDateUtc',
+            'token',
+            'IsExpired',
+            'TokenRejected',
+            'CreationDate',
+            'LastLoginDate',
+            'LastUpdated',
+            'LockedUntil'
         );
         $error_message = "";
         if ($validator->fails()) {
@@ -1303,5 +1333,28 @@ class RegisterController extends Controller
         }
         $UserDetail =  $this->GetUserAccountById($request);
         return response()->json(['status' => 1, 'message' => 'user detail', 'userDetail' => $UserDetail, 'response' => $UserDetail]);
+    }
+
+    public function removeAccount(Request $request)
+    {
+
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|exists:users,email',
+            ]);
+            if ($validator->fails()) {
+                $error = $validator->errors()->first();
+                return response()->json(['status' => 0, 'message' =>  $error, 'response' => []], 200);
+            }
+
+            User::where('email', $request->email)->update(['status' => 'inActive']);
+
+            return response()->json(['status' => 1, 'message' => 'Your account has been deactivated', 'response' => []]);
+        } catch (\Exception $e) {
+            $data['status'] = false;
+            $data['message'] =  $e->getMessage();
+            $data['response'] =  [];
+            return $data;
+        }
     }
 }
