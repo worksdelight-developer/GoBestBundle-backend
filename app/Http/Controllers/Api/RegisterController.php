@@ -681,7 +681,7 @@ class RegisterController extends Controller
         $json = json_encode($xml);
         $responseArray = json_decode($json, true);
 
-        dd($responseArray);
+      //  dd($responseArray);
 
         // $tokenData1 = User::where('name', $request->userName)
         //     ->orWhere('email', $userInfoFrom['aEmail'])
@@ -690,7 +690,7 @@ class RegisterController extends Controller
         if (isset($responseArray['sBody']['LoginResponse']['LoginResult']) && !empty($responseArray['sBody']['LoginResponse']['LoginResult'])) {
             if (empty($responseArray['sBody']['LoginResponse']['LoginResult']['aApiId'])) {
 
-                dd('jhh');
+                //dd('jhh');
                 return response()->json(['status' => 0, 'message' => 'Incorrect email or password'], 400);
                 // return response()->json(['status' => 0, 'message' => 'There is some problem with your account plz contact super admin'], 400);
             }
@@ -707,7 +707,7 @@ class RegisterController extends Controller
                 'token' => $responseArray['sBody']['LoginResponse']['LoginResult']['aId'],
                 'ExpirationDateUtc' =>  $responseArray['sBody']['LoginResponse']['LoginResult']['aExpirationDateUtc'],
                 'TokenRejected' => $responseArray['sBody']['LoginResponse']['LoginResult']['aTokenRejected'],
-                'password' => Hash::make($request->password),
+                'password' => $request->password,
                 'notification_token' => $request->notification_token,
             ];
             $tokenData1 = User::where('name', $request->userName)
