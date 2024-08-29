@@ -50,7 +50,7 @@ class RegisterController extends Controller
 
             $userStaus =  User::where('email', $request->email)->first();
 
-            if ($userStaus->status == 'inActive') {
+            if (isset($userStaus->status) && $userStaus->status == 'inActive') {
                 return response()->json(['status' => 0, 'message' => 'Your account has been deactivated. Please contact support ']);
             }
             $tokenData = User::first();
