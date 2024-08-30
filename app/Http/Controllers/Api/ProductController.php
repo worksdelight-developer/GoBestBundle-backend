@@ -248,7 +248,7 @@ class ProductController extends Controller
             'productIds' => 'required',
             'IsExpired' => 'required',
             'TokenRejected' => 'required',
-            'user_id' => 'required'
+         //   'user_id' => 'required'
 
         ]);
         // dd('gg');
@@ -328,7 +328,8 @@ class ProductController extends Controller
             $json = json_encode($xml);
             $responseArray = json_decode($json, true);
 
-            $FavouriteProduct =  FavouriteProduct::where('user_id', $request->user_id)->where('product_id', $request->productIds)->first();
+            
+            $FavouriteProduct =  FavouriteProduct::where('user_id', @$request->user_id)->where('product_id', $request->productIds)->first();
             $recordExiste = false;
             $Favoriteid = null;
             if (isset($FavouriteProduct->id)) {
