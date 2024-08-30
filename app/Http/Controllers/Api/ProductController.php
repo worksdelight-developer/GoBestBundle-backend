@@ -243,27 +243,21 @@ class ProductController extends Controller
     {
         $validator = Validator::make($request->all(), [
 
-            'ApiId' => 'required',
-            'ExpirationDateUtc' => 'required',
+         //   'ApiId' => 'required',
+         //   'ExpirationDateUtc' => 'required',
             'productIds' => 'required',
-            'IsExpired' => 'required',
-            'TokenRejected' => 'required',
+        //    'IsExpired' => 'required',
+        //    'TokenRejected' => 'required',
          //   'user_id' => 'required'
 
         ]);
-        // dd('gg');
-        $fields = array('ApiId', 'ExpirationDateUtc', 'IsExpired', 'TokenRejected', 'productIds', 'user_id');
-        $error_message = "";
-        if ($validator->fails()) {
-            foreach ($fields as $field) {
-                if (isset($validator->errors()->getMessages()[$field][0]) && !empty($validator->errors()->getMessages()[$field][0]) && empty($error_message)) {
-
-                    $error_message = __($validator->errors()->getMessages()[$field][0]);
-
-                    return response()->json(['status' => 0, 'message' => $error_message]);
-                }
-            }
+    
+      
+         if ($validator->fails()) {
+            $error = $validator->errors()->first();
+            return response()->json(['status' => 0, 'message' =>  $error, 'response' => []]);
         }
+
         try {
             $tokenData = User::first();
             $refreshtoken   =   new RegisterController();
@@ -357,27 +351,19 @@ class ProductController extends Controller
 
     public function GetRootCategories(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // $validator = Validator::make($request->all(), [
 
-            'ApiId' => 'required',
-            'ExpirationDateUtc' => 'required',
-            // 'productIds' => 'required',
-            'IsExpired' => 'required',
-            'TokenRejected' => 'required'
+        //   //  'ApiId' => 'required',
+        //   //  'ExpirationDateUtc' => 'required',
+        //     // 'productIds' => 'required',
+        //     'IsExpired' => 'required',
+        //     'TokenRejected' => 'required'
 
-        ]);
-        $fields = array('ApiId', 'ExpirationDateUtc', 'IsExpired', 'TokenRejected');
-        $error_message = "";
-        if ($validator->fails()) {
-            foreach ($fields as $field) {
-                if (isset($validator->errors()->getMessages()[$field][0]) && !empty($validator->errors()->getMessages()[$field][0]) && empty($error_message)) {
-
-                    $error_message = __($validator->errors()->getMessages()[$field][0]);
-
-                    return response()->json(['status' => 0, 'message' => $error_message]);
-                }
-            }
-        }
+        // ]);
+        // if ($validator->fails()) {
+        //     $error = $validator->errors()->first();
+        //     return response()->json(['status' => 0, 'message' =>  $error, 'response' => []]);
+        // }
 
         try {
             $tokenData = User::first();
