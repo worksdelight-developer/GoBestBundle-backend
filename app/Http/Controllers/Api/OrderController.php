@@ -663,12 +663,23 @@ class OrderController extends Controller
         $validator = Validator::make($request->all(), [
             'user_id' => 'required',
         ]);
+        $status = $request->input('status');
+        //dd($status);
         if ($validator->fails()) {
             $firstErrorMessage = $validator->errors()->first();
             return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
-        $records = UserPurchaseHistory::where('user_id', $request->user_id)->orderby('id', 'desc')->with('aBillingAddress', 'aShippingAddress', 'aLineItems')->get();
-        return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $records]);
+        $query = UserPurchaseHistory::where('user_id', $request->user_id);
+        if ($status == 'pending') {
+            $query = UserPurchaseHistory::where('user_id', $request->user_id)->whereIn('aOrderStatusName', ['Pending Payment', 'Needs Approval', 'In Process']);
+        }
+        $records =  $query->orderby('id', 'desc')->with('aBillingAddress', 'aShippingAddress', 'aLineItems')->paginate(10);
+        $paginationData = [
+            'current_page' => $records->currentPage(),
+            'lastPage' => $records->lastPage(),
+            'total' => $records->total(),
+        ];
+        return response()->json(['status' => 1, 'message' => 'Record Fetched', 'pagination' => $paginationData, 'response' => $records->items()]);
     }
 
     public function getAllOrders(Request $request)
