@@ -24,7 +24,7 @@ class RegisterController extends Controller
             'company' => 'required',
             'email' => 'required|unique:users,email',
             'password' => 'required',
-            'notification_token' => 'required',
+            //'notification_token' => 'required',
             // 'ApiId' => 'required',
             //'ExpirationDateUtc' => 'required',
             //'token' => 'required',
@@ -241,7 +241,7 @@ class RegisterController extends Controller
                     'ExpirationDateUtc' => $check->ExpirationDateUtc,
                     'TokenRejected' => $check->TokenRejected,
                     'password' => $request->password,
-                    'notification_token' => $request->notification_token
+                    'notification_token' => @$request->notification_token
                 ];
                 $userInfo = new User;
                 $userInfo->fill($store);
@@ -702,7 +702,7 @@ class RegisterController extends Controller
                 'ExpirationDateUtc' =>  $responseArray['sBody']['LoginResponse']['LoginResult']['aExpirationDateUtc'],
                 'TokenRejected' => $responseArray['sBody']['LoginResponse']['LoginResult']['aTokenRejected'],
                 'password' => $request->password,
-                'notification_token' => $request->notification_token,
+                'notification_token' => @$request->notification_token,
             ];
             $tokenData1 = User::where('name', $request->userName)
                 ->orWhere('email', $userInfoFrom['aEmail'])
