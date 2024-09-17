@@ -18,7 +18,7 @@ class RegisterController extends Controller
     public function CreateUserAccount(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'userName' => 'required|unique:users,name',
+         //   'userName' => 'required|unique:users,name',
             'firstName' => 'required',
             'lastName' => 'required',
             'company' => 'required',
@@ -77,7 +77,7 @@ class RegisterController extends Controller
                         <log:TokenRejected>' . $check->TokenRejected . '</log:TokenRejected>
                     </tem:token>
                     <!--Optional:-->
-                    <tem:userName>' . $request->userName . '</tem:userName>
+                    <tem:userName>' . $request->email . '</tem:userName>
                     <!--Optional:-->
                     <tem:email>' . $request->email . '</tem:email>
                     <!--Optional:-->
@@ -231,14 +231,15 @@ class RegisterController extends Controller
             $json = json_encode($xml);
             $responseArray = json_decode($json, true); // true to have an array, false for an object
 
+           // dd($responseArray);
             if (isset($responseArray['sBody']['CreateUserAccountResponse']['CreateUserAccountResult']) && !empty($responseArray['sBody']['CreateUserAccountResponse']['CreateUserAccountResult'])) {
                 $user_id   = $responseArray['sBody']['CreateUserAccountResponse']['CreateUserAccountResult'];
-                $checkuser  = User::where('name', $request->userName)->first();
+                $checkuser  = User::where('name', $request->email)->first();
                 if (!empty($checkuser)) {
-                    User::where('name', $request->userName)->delete();
+                    User::where('name', $request->email)->delete();
                 }
                 $store = [
-                    'name' => $request->userName,
+                    'name' => $request->firstName,
                     'email' => $request->email,
                     'UId' => $user_id,
                     'ApiId' => $user_id,
