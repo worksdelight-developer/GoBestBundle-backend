@@ -1013,7 +1013,7 @@ class OrderController extends Controller
     public function syncUserOrders(Request $request)
     {
 
-        ini_set('max_execution_time', 0); // Set execution time to unlimited
+        ini_set('max_execution_time', 30000000000000000); // Set execution time to unlimited
 
         $users =  User::select('id', 'ApiId')->latest()->get();
         $filters = [
