@@ -33,18 +33,11 @@ class RegisterController extends Controller
 
 
         ]);
-        $fields = array('userName', 'firstName', 'lastName', 'company', 'email', 'password', 'ApiId', 'ExpirationDateUtc', 'IsExpired', 'TokenRejected');
-        $error_message = "";
-        if ($validator->fails()) {
-            foreach ($fields as $field) {
-                if (isset($validator->errors()->getMessages()[$field][0]) && !empty($validator->errors()->getMessages()[$field][0]) && empty($error_message)) {
-
-                    $error_message = __($validator->errors()->getMessages()[$field][0]);
-
-                    return response()->json(['status' => 0, 'message' => $error_message]);
-                }
-            }
+         if ($validator->fails()) {
+            $firstErrorMessage = $validator->errors()->first();
+            return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
+
 
         try {
 
