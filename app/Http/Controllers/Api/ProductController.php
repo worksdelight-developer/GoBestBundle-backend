@@ -15,7 +15,7 @@ use App\Models\Cart;
 use Illuminate\Support\Facades\DB;
 use App\Models\FavouriteProduct;
 use Carbon\Carbon;
-
+use App\Models\FeatureProduct;
 
 class ProductController extends Controller
 {
@@ -243,17 +243,17 @@ class ProductController extends Controller
     {
         $validator = Validator::make($request->all(), [
 
-         //   'ApiId' => 'required',
-         //   'ExpirationDateUtc' => 'required',
+            //   'ApiId' => 'required',
+            //   'ExpirationDateUtc' => 'required',
             'productIds' => 'required',
-        //    'IsExpired' => 'required',
-        //    'TokenRejected' => 'required',
-         //   'user_id' => 'required'
+            //    'IsExpired' => 'required',
+            //    'TokenRejected' => 'required',
+            //   'user_id' => 'required'
 
         ]);
-    
-      
-         if ($validator->fails()) {
+
+
+        if ($validator->fails()) {
             $error = $validator->errors()->first();
             return response()->json(['status' => 0, 'message' =>  $error, 'response' => []]);
         }
@@ -322,7 +322,7 @@ class ProductController extends Controller
             $json = json_encode($xml);
             $responseArray = json_decode($json, true);
 
-            
+
             $FavouriteProduct =  FavouriteProduct::where('user_id', @$request->user_id)->where('product_id', $request->productIds)->first();
             $recordExiste = false;
             $Favoriteid = null;
@@ -937,12 +937,67 @@ class ProductController extends Controller
 
 
         if (isset($responseArray['sBody']['FindProductsBySkusResponse']['FindProductsBySkusResult']) && !empty($responseArray['sBody']['FindProductsBySkusResponse'])) {
+
+            FeatureProduct::truncate();
             $finalResults = $responseArray['sBody']['FindProductsBySkusResponse']['FindProductsBySkusResult']['aProduct'];
+            foreach ($finalResults as $product) {
+                FeatureProduct::create([
+                    'aCreationDate' => is_string($product['aCreationDate']) ? $product['aCreationDate']  : null,
+                    'aExtraShipFee' => is_string($product['aExtraShipFee']) ? $product['aExtraShipFee']  : null,
+                    'aFeatured' => is_string($product['aFeatured']) ? $product['aFeatured']  : null,
+                    'aGiftWrapAllowed' => is_string($product['aGiftWrapAllowed']) ? $product['aGiftWrapAllowed']  : null,
+                    'aGiftWrapPrice' => is_string($product['aGiftWrapPrice']) ? $product['aGiftWrapPrice']  : null,
+                    'aId' => is_string($product['aId']) ? $product['aId']  : null,
+                    'aImageFileLarge' => is_string($product['aImageFileLarge']) ? $product['aImageFileLarge']  : null,
+                    'aImageFileLargeAlternateText' => is_string($product['aImageFileLargeAlternateText']) ? $product['aImageFileLargeAlternateText']  : null,
+                    'aImageFileMedium' => is_string($product['aImageFileMedium']) ? $product['aImageFileMedium']  : null,
+                    'aImageFileMediumAlternateText' => is_string($product['aImageFileMediumAlternateText']) ? $product['aImageFileMediumAlternateText']  : null,
+                    'aImageFileSmall' => is_string($product['aImageFileSmall']) ? $product['aImageFileSmall']  : null,
+                    'aImageFileSmallAlternateText' => is_string($product['aImageFileSmallAlternateText']) ? $product['aImageFileSmallAlternateText']  : null,
+                    'aKeywords' => is_string($product['aKeywords']) ? $product['aKeywords']  : null,
+                    'aLastUpdated' => is_string($product['aLastUpdated']) ? $product['aLastUpdated']  : null,
+                    'aListPrice' => is_string($product['aListPrice']) ? $product['aListPrice']  : null,
+                    'aLongDescription' => is_string($product['aLongDescription']) ? $product['aLongDescription']  : null,
+                    'aManufacturerId' => is_string($product['aManufacturerId']) ? $product['aManufacturerId']  : null,
+                    'aMaximumQty' => is_string($product['aMaximumQty']) ? $product['aMaximumQty']  : null,
+                    'aMinimumQty' => is_string($product['aMinimumQty']) ? $product['aMinimumQty']  : null,
+                    'aNonShipping' => is_string($product['aNonShipping']) ? $product['aNonShipping']  : null,
+                    'aOutOfStockMode' => is_string($product['aOutOfStockMode']) ? $product['aOutOfStockMode']  : null,
+                    'aProductName' => is_string($product['aProductName']) ? $product['aProductName']  : null,
+                    'aProductTypeId' => is_string($product['aProductTypeId']) ? $product['aProductTypeId']  : null,
+                    'aRankWeight' => is_string($product['aRankWeight']) ? $product['aRankWeight']  : null,
+                    'aShipSeparately' => is_string($product['aShipSeparately']) ? $product['aShipSeparately']  : null,
+                    'aShippingHeight' => is_string($product['aShippingHeight']) ? $product['aShippingHeight']  : null,
+                    'aShippingLength' => is_string($product['aShippingLength']) ? $product['aShippingLength']  : null,
+                    'aShippingMode' => is_string($product['aShippingMode']) ? $product['aShippingMode']  : null,
+                    'aShippingWeight' => is_string($product['aShippingWeight']) ? $product['aShippingWeight']  : null,
+                    'aShippingWidth' => is_string($product['aShippingWidth']) ? $product['aShippingWidth']  : null,
+                    'aSiteCost' => is_string($product['aSiteCost']) ? $product['aSiteCost']  : null,
+                    'aSitePrice' => is_string($product['aSitePrice']) ? $product['aSitePrice']  : null,
+                    'aSku' => is_string($product['aSku']) ? $product['aSku']  : null,
+                    'aStatus' => is_string($product['aStatus']) ? $product['aStatus']  : null,
+                    'aTrackInventory' => is_string($product['aTrackInventory']) ? $product['aTrackInventory']  : null,
+                    'aUnitOfMeasure' => is_string($product['aUnitOfMeasure']) ? $product['aUnitOfMeasure']  : null,
+                    'aUnspscCode' => is_string($product['aUnspscCode']) ? $product['aUnspscCode']  : null,
+                    'aUpc' => is_string($product['aUpc']) ? $product['aUpc']  : null,
+                    'aVendorId' => is_string($product['aVendorId']) ? $product['aVendorId']  : null,
+                ]);
+
+            }
+
+
+
             return response()->json(['status' => 1, 'message' => 'Feature Product', 'Products' => $finalResults]);
         } else {
             return response()->json(['status' => 0, 'message' => 'something went wrong', 'response' => $response], 400);
         }
     }
+
+
+   public function GetfeatureProductv1(Request $request){
+
+        return response()->json(['status' => 1, 'message' => 'Feature Product', 'Products' => FeatureProduct::get() ]);
+   }
 
 
 

@@ -35,7 +35,9 @@ Route::post('FindProductsByIds', [ProductController::class, 'FindProductsByIds']
 Route::post('GetRootCategories', [ProductController::class, 'GetRootCategories']);
 Route::post('GetCategoryChildren', [ProductController::class, 'GetCategoryChildren']);
 Route::post('GetCategoryById', [ProductController::class, 'GetCategoryById']);
-Route::post('GetfeatureProduct', [ProductController::class, 'GetfeatureProduct']);
+// Route::post('GetfeatureProduct', [ProductController::class, 'GetfeatureProduct']);
+Route::post('GetfeatureProduct', [ProductController::class, 'GetfeatureProductv1']);
+Route::post('GetfeatureProductsync', [ProductController::class, 'GetfeatureProduct']);
 Route::post('GetCategoryProducts', [ProductController::class, 'GetCategoryProducts']);
 Route::post('CreateNewUnplacedOrder', [ProductController::class, 'CreateNewUnplacedOrder']);
 Route::post('CheckExistOrder', [ProductController::class, 'CheckExistOrder']);
