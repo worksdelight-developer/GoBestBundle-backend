@@ -202,150 +202,15 @@ class OrderController extends Controller
             return response()->json(['status' => 0, 'message' => __($firstErrorMessage)]);
         }
 
-        $filters = [];
-        if (isset($request->startIndex) && isset($request->pageSize)) {
-            $filters = [
-                'startIndex' => $request->startIndex,
-                'pageSize' =>  $request->pageSize,
-            ];
-        }
+        $filters = [
+            'startIndex' => 0,
+            'pageSize' =>  300,
+        ];
 
         $orders =  $this->GetOrdersByCriteria($request->user_id, $filters);
-        // dd($orders);
 
         $this->saveOrderTODb($request, $orders);
-        // foreach ($orders  as $order) {
-        //     $aOrderId = '';
-        //     foreach ($order['aLineItems'] as $product) {
-        //         $aOrderId = $product['aOrderId'];
-        //         $saveaLineItems = [
-        //             'aOrderNumber' => is_string($order['aOrderNumber']) ? $order['aOrderNumber'] : '',
-        //             'aId' => is_string($product['aId']) ? $product['aId'] : '',
-        //             'aLastUpdated' =>  is_string($product['aLastUpdated']) ? $product['aLastUpdated'] : '',
-        //             'aOrderId' =>  $aOrderId,
-        //             'aProductId' =>  is_string($product['aProductId']) ?  $product['aProductId'] : '',
-        //             'aProductName' =>  is_string($product['aProductName']) ?  $product['aProductName'] : '',
-        //             'aProductSku' =>  is_string($product['aProductSku']) ?  $product['aProductSku'] : '',
-        //             'aProductUnitOfMeasure' => is_string($product['aProductUnitOfMeasure']) ?   $product['aProductUnitOfMeasure'] : '',
-        //             'aQuantity' => is_string($product['aQuantity']) ?   $product['aQuantity'] : '',
-        //             'aUnitCost' =>  is_string($product['aUnitCost']) ?  $product['aUnitCost'] : '',
-        //             'aUnitPrice' =>  is_string($product['aUnitPrice']) ?  $product['aUnitPrice'] : '',
-        //             'aImageFileLarge' =>  is_string($product['aImageFileLarge']) ?  $product['aImageFileLarge'] : '',
-        //             'aVendorId' => is_string($product['aVendorId']) ?   $product['aVendorId'] : '',
-        //             'aLineTotal' => is_string($product['aLineTotal']) ?   $product['aLineTotal'] : '',
-        //         ];
-        //         $oldRecordALineItems = ALineItems::where($saveaLineItems)->first();
-        //         if (!isset($oldRecordALineItems->id)) {
-        //             $ALineItems = new ALineItems;
-        //             $ALineItems->fill($saveaLineItems);
-        //             $ALineItems->save();
-        //         }
-        //     }
-        //     $saveOrder = [
-        //         'user_id' => $request->user_id,
-        //         'aOrderId' =>  $aOrderId,
-        //         'aIsPlaced' => is_string($order['aIsPlaced']) ?  $order['aIsPlaced'] : '',
-        //         'aGrandTotal' =>  is_string($order['aGrandTotal']) ?  $order['aGrandTotal'] : '',
-        //         'aCartId' =>  is_string($order['aCartId']) ?  $order['aCartId'] : '',
-        //         'aLastUpdated' =>  is_string($order['aLastUpdated']) ?  $order['aLastUpdated'] : '',
-        //         'aOrderNumber' =>  is_string($order['aOrderNumber']) ?  $order['aOrderNumber'] : '',
-        //         'aOrderSource' =>  is_string($order['aOrderSource']) ?   $order['aOrderSource'] : '',
-        //         'aOrderSourceValue' =>  is_string($order['aOrderSourceValue']) ?   $order['aOrderSourceValue'] : '',
-        //         'aOrderStatusId' =>  is_string($order['aOrderStatusId']) ?   $order['aOrderStatusId'] : '',
-        //         'aOrderStatusName' =>  is_string($order['aOrderStatusName']) ?   $order['aOrderStatusName'] : '',
-        //         'aPaymentStatus' =>  is_string($order['aPaymentStatus']) ?   $order['aPaymentStatus'] : '',
-        //     ];
-
-        //     $oldRecordUserPurchaseHistory = UserPurchaseHistory::where([
-        //         'user_id' => $request->user_id,
-        //         'aOrderId' =>  $aOrderId
-        //     ])->first();
-        //     if (isset($oldRecordUserPurchaseHistory->id)) {
-        //         $UserPurchaseHistory = $oldRecordUserPurchaseHistory;
-        //         $UserPurchaseHistory->fill($saveOrder);
-        //         $UserPurchaseHistory->update();
-        //     } else {
-
-        //         $UserPurchaseHistory = new UserPurchaseHistory;
-        //         $UserPurchaseHistory->fill($saveOrder);
-        //         $UserPurchaseHistory->save();
-        //     }
-
-
-        //     $saveABillingAddress = [
-        //         'aOrderId' =>  $aOrderId,
-        //         'aOrderNumber' => is_string($order['aOrderNumber']) ? $order['aOrderNumber'] : '',
-        //         'aBranchCode' => is_string($order['aBillingAddress']['aBranchCode']) ? $order['aBillingAddress']['aBranchCode'] : '',
-        //         'aCity' => is_string($order['aBillingAddress']['aCity']) ? $order['aBillingAddress']['aCity'] : '',
-        //         'aCompany' => is_string($order['aBillingAddress']['aCompany']) ? $order['aBillingAddress']['aCompany'] : '',
-        //         'aCountryCode' => is_string($order['aBillingAddress']['aCountryCode']) ? $order['aBillingAddress']['aCountryCode'] : '',
-        //         'aDepartmentId' => is_string($order['aBillingAddress']['aDepartmentId']) ? $order['aBillingAddress']['aDepartmentId'] : '',
-        //         'aDepartmentName' => is_string($order['aBillingAddress']['aDepartmentName']) ?  $order['aBillingAddress']['aDepartmentName'] : '',
-        //         'aEnabled' => is_string($order['aBillingAddress']['aEnabled']) ?  $order['aBillingAddress']['aEnabled'] : '',
-        //         'aFax' => is_string($order['aBillingAddress']['aFax']) ?  $order['aBillingAddress']['aFax'] : '',
-        //         'aFirstName' => is_string($order['aBillingAddress']['aFirstName']) ?  $order['aBillingAddress']['aFirstName'] : '',
-        //         'aId' => is_string($order['aBillingAddress']['aId']) ?  $order['aBillingAddress']['aId'] : '',
-        //         'aLastName' => is_string($order['aBillingAddress']['aLastName']) ?  $order['aBillingAddress']['aLastName'] : '',
-        //         'aLine1' => is_string($order['aBillingAddress']['aLine1']) ?  $order['aBillingAddress']['aLine1'] : '',
-        //         'aLine2' => is_string($order['aBillingAddress']['aLine2']) ?  $order['aBillingAddress']['aLine2'] : '',
-        //         'aLine3' => is_string($order['aBillingAddress']['aLine3']) ?  $order['aBillingAddress']['aLine3'] : '',
-        //         'aMiddleInitial' => is_string($order['aBillingAddress']['aMiddleInitial']) ?  $order['aBillingAddress']['aMiddleInitial'] : '',
-        //         'aNickName' => is_string($order['aBillingAddress']['aNickName']) ?  $order['aBillingAddress']['aNickName'] : '',
-        //         'aPhone' => is_string($order['aBillingAddress']['aPhone']) ?  $order['aBillingAddress']['aPhone'] : '',
-        //         'aPostalCode' => is_string($order['aBillingAddress']['aPostalCode']) ?  $order['aBillingAddress']['aPostalCode'] : '',
-        //         'aRegionCode' => is_string($order['aBillingAddress']['aRegionCode']) ?  $order['aBillingAddress']['aRegionCode'] : '',
-        //         'aRouteCode' => is_string($order['aBillingAddress']['aRouteCode']) ?  $order['aBillingAddress']['aRouteCode'] : '',
-        //         'aThirdPartyId' => is_string($order['aBillingAddress']['aThirdPartyId']) ?  $order['aBillingAddress']['aThirdPartyId'] : '',
-        //     ];
-        //     $oldRecordABillingAddress = ABillingAddress::where($saveABillingAddress)->first();
-        //     if (isset($oldRecordABillingAddress->id)) {
-        //         $ABillingAddress =  $oldRecordABillingAddress;
-        //         $ABillingAddress->fill($saveABillingAddress);
-        //         $ABillingAddress->update();
-        //     } else {
-        //         $ABillingAddress =  new ABillingAddress;
-        //         $ABillingAddress->fill($saveABillingAddress);
-        //         $ABillingAddress->save();
-        //     }
-
-
-        //     $saveAShippingAddress = [
-        //         'aOrderId' =>  $aOrderId,
-        //         'aOrderNumber' => is_string($order['aOrderNumber']) ? $order['aOrderNumber'] : '',
-        //         'aBranchCode' => is_string($order['aShippingAddress']['aBranchCode']) ? $order['aShippingAddress']['aBranchCode'] : '',
-        //         'aCity' => is_string($order['aShippingAddress']['aCity']) ? $order['aShippingAddress']['aCity'] : '',
-        //         'aCompany' => is_string($order['aShippingAddress']['aCompany']) ? $order['aShippingAddress']['aCompany'] : '',
-        //         'aCountryCode' => is_string($order['aShippingAddress']['aCountryCode']) ? $order['aShippingAddress']['aCountryCode'] : '',
-        //         'aDepartmentId' => is_string($order['aShippingAddress']['aDepartmentId']) ? $order['aShippingAddress']['aDepartmentId'] : '',
-        //         'aDepartmentName' => is_string($order['aShippingAddress']['aDepartmentName']) ?  $order['aShippingAddress']['aDepartmentName'] : '',
-        //         'aEnabled' => is_string($order['aShippingAddress']['aEnabled']) ?  $order['aShippingAddress']['aEnabled'] : '',
-        //         'aFax' => is_string($order['aShippingAddress']['aFax']) ?  $order['aShippingAddress']['aFax'] : '',
-        //         'aFirstName' => is_string($order['aShippingAddress']['aFirstName']) ?  $order['aShippingAddress']['aFirstName'] : '',
-        //         'aId' => is_string($order['aShippingAddress']['aId']) ?  $order['aShippingAddress']['aId'] : '',
-        //         'aLastName' => is_string($order['aShippingAddress']['aLastName']) ?  $order['aShippingAddress']['aLastName'] : '',
-        //         'aLine1' => is_string($order['aShippingAddress']['aLine1']) ?  $order['aShippingAddress']['aLine1'] : '',
-        //         'aLine2' => is_string($order['aShippingAddress']['aLine2']) ?  $order['aShippingAddress']['aLine2'] : '',
-        //         'aLine3' => is_string($order['aShippingAddress']['aLine3']) ?  $order['aShippingAddress']['aLine3'] : '',
-        //         'aMiddleInitial' => is_string($order['aShippingAddress']['aMiddleInitial']) ?  $order['aShippingAddress']['aMiddleInitial'] : '',
-        //         'aNickName' => is_string($order['aShippingAddress']['aNickName']) ?  $order['aShippingAddress']['aNickName'] : '',
-        //         'aPhone' => is_string($order['aShippingAddress']['aPhone']) ?  $order['aShippingAddress']['aPhone'] : '',
-        //         'aPostalCode' => is_string($order['aShippingAddress']['aPostalCode']) ?  $order['aShippingAddress']['aPostalCode'] : '',
-        //         'aRegionCode' => is_string($order['aShippingAddress']['aRegionCode']) ?  $order['aShippingAddress']['aRegionCode'] : '',
-        //         'aRouteCode' => is_string($order['aShippingAddress']['aRouteCode']) ?  $order['aShippingAddress']['aRouteCode'] : '',
-        //         'aThirdPartyId' => is_string($order['aShippingAddress']['aThirdPartyId']) ?  $order['aShippingAddress']['aThirdPartyId'] : '',
-        //     ];
-        //     $oldRecordAShippingAddress = AShippingAddress::where($saveAShippingAddress)->first();
-        //     if (isset($oldRecordAShippingAddress->id)) {
-        //         $AShippingAddress = $oldRecordAShippingAddress;
-        //         $AShippingAddress->fill($saveAShippingAddress);
-        //         $AShippingAddress->update();
-        //     } else {
-        //         $AShippingAddress = new AShippingAddress;
-        //         $AShippingAddress->fill($saveAShippingAddress);
-        //         $AShippingAddress->save();
-        //     }
-        // }
-
+     
         return response()->json(['status' => 1, 'message' => 'Record Fetched', 'response' => $orders]);
     }
 
@@ -570,6 +435,7 @@ class OrderController extends Controller
             }
         }
 
+        // dd($orderInfoFromApi);
         $orderInfo = [
             'aIsPlaced' =>  @$orderInfoFromApi['aIsPlaced'],
             'aGrandTotal' =>     @$orderInfoFromApi['aGrandTotal'],
@@ -583,6 +449,15 @@ class OrderController extends Controller
             'aPaymentStatus' =>    @$orderInfoFromApi['aPaymentStatus'],
             'aBillingAddress' =>   @$orderInfoFromApi['aBillingAddress'],
             'aShippingAddress' =>   @$orderInfoFromApi['aShippingAddress'],
+            'aShippingCost' =>   @$orderInfoFromApi['aShippingCost'],
+            'aShippingDiscounts' =>   @$orderInfoFromApi['aShippingDiscounts'],
+            'aShippingMethodId' =>   @$orderInfoFromApi['aShippingMethodId'],
+            'aShippingProviderId' =>   @$orderInfoFromApi['aShippingProviderId'],
+            'aShippingProviderServiceCode' =>   @$orderInfoFromApi['aShippingProviderServiceCode'],
+            'aShippingStatus' =>   @$orderInfoFromApi['aShippingStatus'],
+            'aShippingTotal' =>   @$orderInfoFromApi['aShippingTotal'],
+            'aSubTotal' =>   @$orderInfoFromApi['aSubTotal'],
+            'aTaxTotal' =>   @$orderInfoFromApi['aTaxTotal'],
             'aLineItems' =>   $aLineItems,
 
         ];
@@ -874,9 +749,10 @@ class OrderController extends Controller
 
 
 
-     function saveOrderTODb(Request $request, $orders)
+    function saveOrderTODb(Request $request, $orders)
     {
         foreach ($orders  as $order) {
+
             $aOrderId = '';
             foreach ($order['aLineItems'] as $product) {
                 $aOrderId = $product['aOrderId'];
@@ -916,6 +792,15 @@ class OrderController extends Controller
                 'aOrderStatusId' =>  is_string($order['aOrderStatusId']) ?   $order['aOrderStatusId'] : '',
                 'aOrderStatusName' =>  is_string($order['aOrderStatusName']) ?   $order['aOrderStatusName'] : '',
                 'aPaymentStatus' =>  is_string($order['aPaymentStatus']) ?   $order['aPaymentStatus'] : '',
+                'aShippingCost' =>  is_string($order['aShippingCost']) ?   $order['aShippingCost'] : '',
+                'aShippingDiscounts' =>  is_string($order['aShippingDiscounts']) ?   $order['aShippingDiscounts'] : '',
+                'aShippingMethodId' =>  is_string($order['aShippingMethodId']) ?   $order['aShippingMethodId'] : '',
+                'aShippingProviderId' =>  is_string($order['aShippingProviderId']) ?   $order['aShippingProviderId'] : '',
+                'aShippingProviderServiceCode' =>  is_string($order['aShippingProviderServiceCode']) ?   $order['aShippingProviderServiceCode'] : '',
+                'aShippingStatus' =>  is_string($order['aShippingStatus']) ?   $order['aShippingStatus'] : '',
+                'aShippingTotal' =>  is_string($order['aShippingTotal']) ?   $order['aShippingTotal'] : '',
+                'aSubTotal' =>  is_string($order['aSubTotal']) ?   $order['aSubTotal'] : '',
+                'aTaxTotal' =>  is_string($order['aTaxTotal']) ?   $order['aTaxTotal'] : '',
             ];
 
             $oldRecordUserPurchaseHistory = UserPurchaseHistory::where([
@@ -1020,20 +905,18 @@ class OrderController extends Controller
             'startIndex' => 0,
             'pageSize' =>  750,
         ];
-        foreach($users as $user){
+        foreach ($users as $user) {
             $request['user_id'] =  $user->ApiId;
             $orders =  $this->GetOrdersByCriteria($request->user_id, $filters);
             if (count($orders) !== 0) {
-           //     dd($orders);
+                //     dd($orders);
                 $this->saveOrderTODb($request, $orders);
             }
         }
-        
+
 
 
         //  dd($request['user_id']);
         return response()->json(['status' => 1, 'message' => 'Synced Sucess', 'response' => []]);
     }
-
-   
 }
