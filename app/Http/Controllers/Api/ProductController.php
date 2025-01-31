@@ -53,7 +53,7 @@ class ProductController extends Controller
 
         $curl = curl_init();
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+            CURLOPT_URL => 'http://www.bundlesadvantage.com/api/CatalogService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -112,7 +112,7 @@ class ProductController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -197,7 +197,7 @@ class ProductController extends Controller
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-                CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+                CURLOPT_URL => 'http://www.bundlesadvantage.com/api/CatalogService.svc',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -292,7 +292,7 @@ class ProductController extends Controller
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-                CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+                CURLOPT_URL => 'http://www.bundlesadvantage.com/api/CatalogService.svc',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -393,7 +393,7 @@ class ProductController extends Controller
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-                CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+                CURLOPT_URL => 'http://www.bundlesadvantage.com/api/CatalogService.svc',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -508,7 +508,7 @@ class ProductController extends Controller
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-                CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+                CURLOPT_URL => 'http://www.bundlesadvantage.com/api/CatalogService.svc',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -582,7 +582,7 @@ class ProductController extends Controller
                         $curl1 = curl_init();
 
                         curl_setopt_array($curl1, array(
-                            CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+                            CURLOPT_URL => 'http://www.bundlesadvantage.com/api/CatalogService.svc',
                             CURLOPT_RETURNTRANSFER => true,
                             CURLOPT_ENCODING => '',
                             CURLOPT_MAXREDIRS => 10,
@@ -724,7 +724,7 @@ class ProductController extends Controller
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-                CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+                CURLOPT_URL => 'http://www.bundlesadvantage.com/api/CatalogService.svc',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -824,7 +824,7 @@ class ProductController extends Controller
     //     $curl = curl_init();
 
     //     curl_setopt_array($curl, array(
-    //         CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+    //         CURLOPT_URL => 'http://www.bundlesadvantage.com/api/CatalogService.svc',
     //         CURLOPT_RETURNTRANSFER => true,
     //         CURLOPT_ENCODING => '',
     //         CURLOPT_MAXREDIRS => 10,
@@ -907,7 +907,7 @@ class ProductController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+            CURLOPT_URL => 'http://www.bundlesadvantage.com/api/CatalogService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -1051,7 +1051,7 @@ class ProductController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+            CURLOPT_URL => 'http://www.bundlesadvantage.com/api/CatalogService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -1231,7 +1231,7 @@ class ProductController extends Controller
                 </soapenv:Envelope>';
                 $curl2 = curl_init();
                 curl_setopt_array($curl2, array(
-                    CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+                    CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,
@@ -1389,7 +1389,7 @@ class ProductController extends Controller
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-                CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+                CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -1449,7 +1449,7 @@ class ProductController extends Controller
                 $curl1 = curl_init();
 
                 curl_setopt_array($curl1, array(
-                    CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+                    CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,
@@ -1621,7 +1621,7 @@ class ProductController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -1682,7 +1682,7 @@ class ProductController extends Controller
             $curl1 = curl_init();
 
             curl_setopt_array($curl1, array(
-                CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+                CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -1763,7 +1763,7 @@ class ProductController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -1890,7 +1890,7 @@ class ProductController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -2007,7 +2007,7 @@ class ProductController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+            CURLOPT_URL => 'http://www.bundlesadvantage.com/api/CatalogService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -2099,7 +2099,7 @@ class ProductController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -2202,7 +2202,7 @@ class ProductController extends Controller
         $curl1 = curl_init();
 
         curl_setopt_array($curl1, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -2293,7 +2293,7 @@ class ProductController extends Controller
                 $curl = curl_init();
 
                 curl_setopt_array($curl, array(
-                    CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+                    CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,
@@ -2428,7 +2428,7 @@ class ProductController extends Controller
         $curl1 = curl_init();
 
         curl_setopt_array($curl1, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -2489,7 +2489,7 @@ class ProductController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -2582,7 +2582,7 @@ class ProductController extends Controller
         $curl1 = curl_init();
 
         curl_setopt_array($curl1, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -2641,7 +2641,7 @@ class ProductController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -2748,7 +2748,7 @@ class ProductController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -2855,7 +2855,7 @@ class ProductController extends Controller
         $curl1 = curl_init();
 
         curl_setopt_array($curl1, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -3099,7 +3099,7 @@ class ProductController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'http://www.gobestbundles.com/api/CatalogService.svc',
+            CURLOPT_URL => 'http://www.bundlesadvantage.com/api/CatalogService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,

@@ -73,7 +73,7 @@ class OrderController extends Controller
         $curl1 = curl_init();
 
         curl_setopt_array($curl1, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc',
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -359,7 +359,7 @@ class OrderController extends Controller
 
         // Configure cURL options
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc', // Update with the actual URL
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc', // Update with the actual URL
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -649,7 +649,7 @@ class OrderController extends Controller
             // Configure cURL options
             dd($soapRequest);
             curl_setopt_array($curl, array(
-                CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc', // Update with the actual URL
+                CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc', // Update with the actual URL
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -719,7 +719,7 @@ class OrderController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://www.gobestbundles.com/API/OrdersService.svc', // Update with the actual URL
+            CURLOPT_URL => 'https://www.bundlesadvantage.com/API/OrdersService.svc', // Update with the actual URL
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,

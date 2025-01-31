@@ -66,7 +66,7 @@ class UserController extends Controller
                 $curl1 = curl_init();
 
                 curl_setopt_array($curl1, array(
-                    CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+                    CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,
@@ -133,7 +133,7 @@ class UserController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+            CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -184,7 +184,7 @@ class UserController extends Controller
                 $curl1 = curl_init();
 
                 curl_setopt_array($curl1, array(
-                    CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+                    CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,

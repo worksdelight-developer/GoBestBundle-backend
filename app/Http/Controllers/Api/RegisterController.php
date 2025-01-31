@@ -194,7 +194,7 @@ class RegisterController extends Controller
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-                CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+                CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -307,7 +307,7 @@ class RegisterController extends Controller
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-                CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+                CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -383,7 +383,7 @@ class RegisterController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+            CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -394,11 +394,14 @@ class RegisterController extends Controller
             CURLOPT_POSTFIELDS => $refreshToken,
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: text/xml; charset=utf-8',
-                'SOAPAction: http://tempuri.org/IAuthenticationService/IsTokenValid'
+                'SOAPAction: http://tempuri.org/IAuthenticationService/IsTokenValid',
+
             ),
+            
         ));
 
         $response = curl_exec($curl);
+     //    dd('here', $response);
         if (curl_errno($curl)) {
             $response = curl_error($curl);
 
@@ -407,8 +410,9 @@ class RegisterController extends Controller
         curl_close($curl);
 
         $xml = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
-			//dd($xml);
+	//	dd($xml);
         $xml = simplexml_load_string($xml);
+
 	
         $json = json_encode($xml);
         $responseArray = json_decode($json, true);
@@ -436,7 +440,7 @@ class RegisterController extends Controller
                 $curl1 = curl_init();
 
                 curl_setopt_array($curl1, array(
-                    CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+                    CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,
@@ -508,7 +512,7 @@ class RegisterController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+            CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -557,7 +561,7 @@ class RegisterController extends Controller
                 $curl1 = curl_init();
 
                 curl_setopt_array($curl1, array(
-                    CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+                    CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,
@@ -607,7 +611,7 @@ class RegisterController extends Controller
 
         $tokenData = User::first();
         $refreshtoken   =   new RegisterController();
-        $check = $refreshtoken->refreshToken($tokenData);
+        // $check = $refreshtoken->refreshToken($tokenData);
         // dd($check);
         $validator = Validator::make($request->all(), [
             'userName' => 'required',
@@ -649,7 +653,7 @@ class RegisterController extends Controller
         $curl1 = curl_init();
 
         curl_setopt_array($curl1, array(
-            CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+            CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -673,6 +677,8 @@ class RegisterController extends Controller
         curl_close($curl1);
 
         $xml = preg_replace("/(<\/?)(\w+):([^>]*>)/", '$1$2$3', $response);
+
+      //  dd($xml);
         $xml = simplexml_load_string($xml);
         $json = json_encode($xml);
         $responseArray = json_decode($json, true);
@@ -790,7 +796,7 @@ class RegisterController extends Controller
             $curl1 = curl_init();
 
             curl_setopt_array($curl1, array(
-                CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+                CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -1085,7 +1091,7 @@ class RegisterController extends Controller
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-                CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+                CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -1202,7 +1208,7 @@ class RegisterController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+            CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -1250,6 +1256,7 @@ class RegisterController extends Controller
     {
         $tokenData = User::first();
         $check = $this->refreshToken($tokenData);
+      //  dd($check);
         $soapEnvelope = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:log="http://schemas.datacontract.org/2004/07/Logicblock.Commerce.Domain">
             <soapenv:Header/>
             <soapenv:Body>
@@ -1276,7 +1283,7 @@ class RegisterController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'http://www.gobestbundles.com/api/UserAccountService.svc',
+            CURLOPT_URL => 'http://www.bundlesadvantage.com/api/UserAccountService.svc',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
