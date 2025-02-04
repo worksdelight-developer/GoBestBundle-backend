@@ -20,3 +20,5 @@ Route::get('/', function () {
 Route::get('/resetPassword/{token}', [App\Http\Controllers\UserController::class, 'resetPassword'])->name('resetPassword');
 Route::post('/updatePassword', [App\Http\Controllers\UserController::class, 'updatePassword'])->name('updatePassword');
 Route::get('/orderPlace250', [App\Http\Controllers\AutomaticOrderController::class, 'orderPlace250'])->name('orderPlace250');
+
+

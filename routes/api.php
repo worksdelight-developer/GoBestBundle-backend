@@ -76,5 +76,7 @@ Route::post('scanOut', [InventoryController::class, 'scanOut']);
 Route::post('FindProductsBySkus', [ProductController::class, 'FindProductsBySkus']);
 Route::post('removeAccount', [RegisterController::class, 'removeAccount']);
 Route::get('syncUserOrders', [OrderController::class, 'syncUserOrders']);
+Route::get('track-fedex-package', [OrderController::class, 'trackFedexPackage']);
+
 
 

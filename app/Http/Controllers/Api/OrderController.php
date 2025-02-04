@@ -23,11 +23,13 @@ use App\Models\ALineItems;
 use Illuminate\Support\Facades\DB;
 use App\Models\FavouriteProduct;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 
 class OrderController extends Controller
 {
     //
-
+    private $clientId = 'l76b0e03ede5a346caaf3f99553e3b94c7';
+    private $clientSecret = 'l76b0e03ede5a346caaf3f99553e3b94c7';
 
 
     public function AddLineitem($order_id, $product_id, $quantity)
@@ -919,4 +921,49 @@ class OrderController extends Controller
         //  dd($request['user_id']);
         return response()->json(['status' => 1, 'message' => 'Synced Sucess', 'response' => []]);
     }
+    public function getFedExToken()
+    {
+        $response = Http::asForm()->post('https://apis-sandbox.fedex.com/oauth/token', [
+                'client_id' => $this->clientId,
+                'client_secret' => $this->clientSecret,
+                'grant_type' => 'client_credentials'
+            ]);
+
+        if ($response->successful()) {
+            return $response->json()['access_token'];
+        }
+
+        return response()->json(['error' => 'Failed to retrieve FedEx token'], 500);
+    }
+
+    public function trackFedexPackage(Request $request)
+    {
+        $trackingNumber = $request->input('tracking_number');
+        if (!$trackingNumber) {
+            return response()->json(['error' => 'Tracking number is required'], 400);
+        }
+
+        $token = $this->getFedExToken();
+        if (is_array($token)) {
+            return $token; // Return error response if token retrieval failed
+        }
+
+        $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $token,
+                'X-locale' => 'en_US',
+                'Content-Type' => 'application/json',
+            ])->post('https://apis-sandbox.fedex.com/track/v1/trackingnumbers', [
+                'trackingInfo' => [
+                    [
+                        'trackingNumberInfo' => [
+                            'trackingNumber' => $trackingNumber
+                        ]
+                    ]
+                ],
+                'includeDetailedScans' => true
+            ]);
+
+        return $response->json();
+    }
+
 }

@@ -18,3 +18,12 @@ class TrustHosts extends Middleware
         ];
     }
 }
+
+
+Error: Null check operator used on a null value
+Exception Occurred!
+API Response Time: 783 ms
+StackTrace: #0      State.context (package:flutter/src/widgets/framework.dart:954)
+#1      _SplashSecondScreenState._navigateToNextScreen (package:diet_angel/pages/splash_second_phase.dart:507)
+#2      _SplashSecondScreenState.navigationPage (package:diet_angel/pages/splash_second_phase.dart:480)
+<asynchronous suspension>
