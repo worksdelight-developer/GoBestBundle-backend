@@ -29,7 +29,7 @@ class OrderController extends Controller
 {
     //
     private $clientId = 'l76b0e03ede5a346caaf3f99553e3b94c7';
-    private $clientSecret = 'l76b0e03ede5a346caaf3f99553e3b94c7';
+    private $clientSecret = '14e0dd1892b745c6ae67fad79ea4b621';
 
 
     public function AddLineitem($order_id, $product_id, $quantity)
@@ -938,7 +938,7 @@ class OrderController extends Controller
 
     public function trackFedexPackage(Request $request)
     {
-        $trackingNumber = $request->input('tracking_number');
+        $trackingNumber = $request->tracking_number;
         if (!$trackingNumber) {
             return response()->json(['error' => 'Tracking number is required'], 400);
         }
